@@ -7,7 +7,14 @@ enable_testing()
 # Submodule dependencies
 add_subdirectory(src/lib/eigen)
 
-add_executable(CnnFromScratch src/main.cpp)
+add_executable(CnnFromScratch 
+    src/main.cpp
+    src/lib/utils/Rng.cpp
+    src/lib/layer/Layer.cpp
+    src/lib/output/Ouput.cpp
+    src/lib/NeuralNetwork.cpp
+    src/lib/optimizer/Optimizer.cpp
+)
 
 # Linking project to submodule dependencies
 target_link_libraries(CnnFromScratch eigen)
