@@ -62,12 +62,12 @@ namespace neuralNework
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
         bool assemble();
         void showStructure(
-    arma::Mat<double> input,
-    arma::Mat<double> inputWeights,
-    arma::Mat<double> output,
-    std::vector<arma::Mat<double>> hiddenLayers,
-    std::vector<arma::Mat<double>> hiddenWeights,
-    bool showMatrices = false);
+            arma::Mat<double> input,
+            arma::Mat<double> inputWeights,
+            arma::Mat<double> output,
+            std::vector<arma::Mat<double>> hiddenLayers,
+            std::vector<arma::Mat<double>> hiddenWeights,
+            bool showMatrices = false);
     };
 }
 #endif // SRC_LIB_NN_H
