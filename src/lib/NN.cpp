@@ -89,17 +89,21 @@ void neuralNework::NN::showStructure(
 {
 
     std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
-    for (int i = 0; i < layers.size(); i++)
+    unsigned size = this->networkMatrices.size() - 1;
+
+    // Each layer has its weights companions
+    for (unsigned i = 0; i < size; i += 2)
     {
-        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Layer_" << i << std::endl;
+        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Layer_" << i / 2 << std::endl;
         if (showMatrices)
             std::cout << layers[i] << std::endl;
 
-        i++;
+        if (i == size - 1)
+            break;
 
-        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Weights_" << i << std::endl;
+        std::cout << layers[i + 1].n_rows << "x" << layers[i + 1].n_cols << " - Weights_" << i / 2 << std::endl;
         if (showMatrices)
-            std::cout << layers[i] << std::endl;
+            std::cout << layers[i + 1] << std::endl;
     }
 }
 
