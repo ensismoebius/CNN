@@ -16,38 +16,41 @@ neuralNework::NN::NN()
 
 bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFunction function)
 {
-    this->hiddenLayersTypes.push_back(type);
-    this->hiddenLayersSizes.push_back(nodes);
+    this->layersTypes.push_back(type);
+    this->layersSizes.push_back(nodes);
+
+    if (type == LayerType::Output)
+        return true;
 
     switch (function)
     {
     case Relu:
-        this->hiddenLayersFunctions.push_back(relu);
-        this->hiddenLayersDFunctions.push_back(reluD);
+        this->activationFunctions.push_back(relu);
+        this->activationFunctionsD.push_back(reluD);
         break;
     case Step:
-        this->hiddenLayersFunctions.push_back(step);
-        this->hiddenLayersDFunctions.push_back(stepD);
+        this->activationFunctions.push_back(step);
+        this->activationFunctionsD.push_back(stepD);
         break;
     case Silu:
-        this->hiddenLayersFunctions.push_back(silu);
-        this->hiddenLayersDFunctions.push_back(siluD);
+        this->activationFunctions.push_back(silu);
+        this->activationFunctionsD.push_back(siluD);
         break;
     case Sigmoid:
-        this->hiddenLayersFunctions.push_back(sigmoid);
-        this->hiddenLayersDFunctions.push_back(sigmoidD);
+        this->activationFunctions.push_back(sigmoid);
+        this->activationFunctionsD.push_back(sigmoidD);
         break;
     case Hiperbolic:
-        this->hiddenLayersFunctions.push_back(hiperbolicTangent);
-        this->hiddenLayersDFunctions.push_back(hiperbolicTangentD);
+        this->activationFunctions.push_back(hiperbolicTangent);
+        this->activationFunctionsD.push_back(hiperbolicTangentD);
         break;
     case Softplus:
-        this->hiddenLayersFunctions.push_back(softplus);
-        this->hiddenLayersDFunctions.push_back(softplusD);
+        this->activationFunctions.push_back(softplus);
+        this->activationFunctionsD.push_back(softplusD);
         break;
     case LeakyRelu:
-        this->hiddenLayersFunctions.push_back(leakyRelu);
-        this->hiddenLayersDFunctions.push_back(leakyReluD);
+        this->activationFunctions.push_back(leakyRelu);
+        this->activationFunctionsD.push_back(leakyReluD);
         break;
     }
 
@@ -59,23 +62,23 @@ bool neuralNework::NN::assemble(bool showStructure)
     /////////////////////////////////////////////////////////////
     /////// The hidden weights creating and initializing ////////
     /////////////////////////////////////////////////////////////
-    for (unsigned i = 0; i < this->hiddenLayersSizes.size(); i++)
+    for (unsigned i = 0; i < this->layersSizes.size(); i++)
     {
         //// Initialise all hidden layers
         arma::Mat<double> hiddenLayer(
-            this->hiddenLayersSizes[i],
+            this->layersSizes[i],
             1);
 
         arma::Mat<double> hiddenWeight(
-            this->hiddenLayersSizes[i + 1],
-            this->hiddenLayersSizes[i]);
+            this->layersSizes[i + 1],
+            this->layersSizes[i]);
         hiddenWeight.randu();
 
-        this->neuralNeworkMatrices.push_back(hiddenLayer);
-        this->neuralNeworkMatrices.push_back(hiddenWeight);
+        this->networkMatrices.push_back(hiddenLayer);
+        this->networkMatrices.push_back(hiddenWeight);
     }
 
-    this->showStructure(this->neuralNeworkMatrices, showStructure);
+    this->showStructure(this->networkMatrices, showStructure);
 
     return true;
 }
@@ -86,7 +89,7 @@ void neuralNework::NN::showStructure(
 {
 
     std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
-    for (int i = -1; i < layers.size(); i++)
+    for (int i = 0; i < layers.size(); i++)
     {
         std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Layer_" << i << std::endl;
         if (showMatrices)
@@ -102,23 +105,21 @@ void neuralNework::NN::showStructure(
 
 void neuralNework::NN::feedForward()
 {
+    unsigned size = this->networkMatrices.size() - 2;
 
-    unsigned size = this->neuralNeworkMatrices.size() - 2;
-
+    // Each layer has its weights companions
     for (unsigned i = 0; i < size; i += 2)
     {
-        this->neuralNeworkMatrices[i + 2] =
-            this->neuralNeworkMatrices[i + 1] * this->neuralNeworkMatrices[i];
+        // Generate the zMatrix = (input * weights)
+        this->networkMatrices[i + 2] = this->networkMatrices[i + 1] * this->networkMatrices[i];
 
-        this->neuralNeworkMatrices[i + 2].transform(this->hiddenLayersFunctions[i / 2]);
-
-        std::cout << this->neuralNeworkMatrices[i] << std::endl;
-        std::cout << this->neuralNeworkMatrices[i + 2] << std::endl;
+        // Apply activation function
+        this->networkMatrices[i + 2].transform(this->activationFunctions[i / 2]);
     }
 }
 
-void neuralNework::NN::backPropagation() {
-    
+void neuralNework::NN::backPropagation()
+{
 }
 
 ////////////////////////////////////////////////////////////

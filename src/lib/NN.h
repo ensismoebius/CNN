@@ -44,18 +44,20 @@ namespace neuralNework
         Input,
         Spike,
         Residual,
-        FullConnected
+        FullConnected,
+        Output
     };
 
     class NN
     {
     private:
-        std::vector<double> hiddenLayersSizes;
-        std::vector<LayerType> hiddenLayersTypes;
-        std::vector<double (*)(double)> hiddenLayersFunctions;
-        std::vector<double (*)(double)> hiddenLayersDFunctions;
+        std::vector<double> layersSizes;
+        std::vector<LayerType> layersTypes;
+        std::vector<double (*)(double)> activationFunctions;
+        std::vector<double (*)(double)> activationFunctionsD;
 
-        std::vector<arma::Mat<double>> neuralNeworkMatrices;
+        // Assembled neural network
+        std::vector<arma::Mat<double>> networkMatrices;
 
     public:
         ~NN();
