@@ -1,7 +1,10 @@
 #include "NN.h"
-#include <armadillo>
+#include <cmath>
 #include <vector>
+#include <limits>
 #include <iostream>
+#include <armadillo>
+#include <algorithm>
 
 neuralNework::NN::~NN()
 {
@@ -112,4 +115,77 @@ void neuralNework::NN::showStructure(
 
     std::cout << "Output layer - " << output.n_rows << "x" << output.n_cols << std::endl;
     std::cout << output << std::endl;
+}
+
+////////////////////////////////////////////////////////////
+//////////////// Activations functions /////////////////////
+////////////////////////////////////////////////////////////
+
+double neuralNework::sigmoid(double x)
+{
+    return 1.0 / (1.0 + std::pow(M_E, -x));
+}
+double neuralNework::sigmoidD(double x)
+{
+    double y = neuralNework::sigmoid(x);
+    return y * (1.0 - y);
+}
+
+double neuralNework::step(double x)
+{
+    return x < 0.0 ? 0.0 : 1.0;
+}
+double neuralNework::stepD(double x)
+{
+    return x != 0 ? 0.0 : std::numeric_limits<double>::quiet_NaN();
+}
+
+double neuralNework::relu(double x)
+{
+    return std::max(x, 0.0);
+}
+double neuralNework::reluD(double x)
+{
+    return x < 0.0 ? 0.0 : 1.0;
+}
+
+double neuralNework::softplus(double x)
+{
+    return std::log(1.0 + std::pow(M_E, x));
+}
+double neuralNework::softplusD(double x)
+{
+    return 1.0 / (1.0 + std::pow(M_E, -x));
+}
+
+double neuralNework::leakyRelu(double x)
+{
+    return x < 0.0 ? 0.01 * x : x;
+}
+double neuralNework::leakyReluD(double x)
+{
+    return x < 0.0 ? 0.01 : 1.0;
+}
+
+double neuralNework::hiperbolicTangent(double x)
+{
+    double y1 = std::pow(M_E, x);
+    double y2 = std::pow(M_E, -x);
+    return (y1 - y2) / (y1 + y2);
+}
+double neuralNework::hiperbolicTangentD(double x)
+{
+    return 1.0 - std::pow(hiperbolicTangent(x), 2.0);
+}
+
+double neuralNework::silu(double x)
+{
+    return 1.0 / (1.0 + std::pow(M_E, -x));
+}
+double neuralNework::siluD(double x)
+{
+    return (
+               (1 + std::pow(M_E, -x)) +
+               (x + std::pow(M_E, -x))) /
+           (std::pow(1.0 + std::pow(M_E, -x), 2));
 }
