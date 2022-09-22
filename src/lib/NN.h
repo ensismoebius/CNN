@@ -50,24 +50,23 @@ namespace neuralNework
     class NN
     {
     private:
-        unsigned inputSize;
-        unsigned outputSize;
         std::vector<double> hiddenLayersSizes;
         std::vector<LayerType> hiddenLayersTypes;
-        std::vector<ActivationFunction> hiddenLayersFunctions;
+        std::vector<double (*)(double)> hiddenLayersFunctions;
+        std::vector<double (*)(double)> hiddenLayersDFunctions;
+
+        std::vector<arma::Mat<double>> neuralNeworkMatrices;
 
     public:
         ~NN();
-        NN(unsigned inputSize, unsigned outputSize);
+        NN();
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
-        bool assemble();
+        bool assemble(bool showStructure = false);
         void showStructure(
-            arma::Mat<double> input,
-            arma::Mat<double> inputWeights,
-            arma::Mat<double> output,
-            std::vector<arma::Mat<double>> hiddenLayers,
-            std::vector<arma::Mat<double>> hiddenWeights,
+            std::vector<arma::Mat<double>> layers,
             bool showMatrices = false);
+        void feedForward();
+        void backPropagation();
     };
 }
 #endif // SRC_LIB_NN_H

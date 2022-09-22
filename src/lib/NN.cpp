@@ -10,8 +10,7 @@ neuralNework::NN::~NN()
 {
 }
 
-neuralNework::NN::NN(unsigned inputSize, unsigned outputSize) : inputSize(inputSize),
-                                                                outputSize(outputSize)
+neuralNework::NN::NN()
 {
 }
 
@@ -19,116 +18,107 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
 {
     this->hiddenLayersTypes.push_back(type);
     this->hiddenLayersSizes.push_back(nodes);
-    this->hiddenLayersFunctions.push_back(function);
+
+    switch (function)
+    {
+    case Relu:
+        this->hiddenLayersFunctions.push_back(relu);
+        this->hiddenLayersDFunctions.push_back(reluD);
+        break;
+    case Step:
+        this->hiddenLayersFunctions.push_back(step);
+        this->hiddenLayersDFunctions.push_back(stepD);
+        break;
+    case Silu:
+        this->hiddenLayersFunctions.push_back(silu);
+        this->hiddenLayersDFunctions.push_back(siluD);
+        break;
+    case Sigmoid:
+        this->hiddenLayersFunctions.push_back(sigmoid);
+        this->hiddenLayersDFunctions.push_back(sigmoidD);
+        break;
+    case Hiperbolic:
+        this->hiddenLayersFunctions.push_back(hiperbolicTangent);
+        this->hiddenLayersDFunctions.push_back(hiperbolicTangentD);
+        break;
+    case Softplus:
+        this->hiddenLayersFunctions.push_back(softplus);
+        this->hiddenLayersDFunctions.push_back(softplusD);
+        break;
+    case LeakyRelu:
+        this->hiddenLayersFunctions.push_back(leakyRelu);
+        this->hiddenLayersDFunctions.push_back(leakyReluD);
+        break;
+    }
+
     return true;
 }
 
-bool neuralNework::NN::assemble()
+bool neuralNework::NN::assemble(bool showStructure)
 {
-    // Input layer
-    arma::Mat<double> input(this->inputSize, 1);
-
-    // Output layer
-    arma::Mat<double> output(this->outputSize, 1);
-
-    // The input to hidden/output layer
-    // weight matrix depends on how long
-    // the input and the hidden layer/
-    // output is
-    unsigned int inputWeightsRows =
-        this->hiddenLayersSizes.size() > 0 ? this->hiddenLayersSizes[0] : this->outputSize;
-
-    /////////////////////////////////////////////////////////////
-    /////////////////////// Input weights ///////////////////////
-    /////////////////////////////////////////////////////////////
-    arma::Mat<double> inputWeights(
-        inputWeightsRows, // input weights rows
-        this->inputSize   // input weights cols
-    );
-    inputWeights.randu(); // initialize ramdomly all weigths
-
-    /////////////////////////////////////////////////////////////
-    /////////////////////// The hidden layers ///////////////////
-    /////////////////////////////////////////////////////////////
-    std::vector<arma::Mat<double>> hiddenLayers;
-
     /////////////////////////////////////////////////////////////
     /////// The hidden weights creating and initializing ////////
     /////////////////////////////////////////////////////////////
-    std::vector<arma::Mat<double>> hiddenWeights;
     for (unsigned i = 0; i < this->hiddenLayersSizes.size(); i++)
     {
-        if (i == this->hiddenLayersSizes.size() - 1)
-        {
-            //// Initialise the last hidden to output
-            arma::Mat<double> hiddenLayer(this->hiddenLayersSizes[i], 1);
+        //// Initialise all hidden layers
+        arma::Mat<double> hiddenLayer(
+            this->hiddenLayersSizes[i],
+            1);
 
-            arma::Mat<double> hiddenWeight(
-                this->outputSize,
-                this->hiddenLayersSizes[i]);
-            hiddenWeight.randu();
+        arma::Mat<double> hiddenWeight(
+            this->hiddenLayersSizes[i + 1],
+            this->hiddenLayersSizes[i]);
+        hiddenWeight.randu();
 
-            hiddenLayers.push_back(hiddenLayer);
-            hiddenWeights.push_back(hiddenWeight);
-        }
-        else
-        {
-            //// Initialise all hidden layers
-            arma::Mat<double> hiddenLayer(
-                this->hiddenLayersSizes[i],
-                1);
-
-            arma::Mat<double> hiddenWeight(
-                this->hiddenLayersSizes[i + 1],
-                this->hiddenLayersSizes[i]);
-            hiddenWeight.randu();
-
-            hiddenLayers.push_back(hiddenLayer);
-            hiddenWeights.push_back(hiddenWeight);
-        }
+        this->neuralNeworkMatrices.push_back(hiddenLayer);
+        this->neuralNeworkMatrices.push_back(hiddenWeight);
     }
 
-    this->showStructure(input, inputWeights, output, hiddenLayers, hiddenWeights);
+    this->showStructure(this->neuralNeworkMatrices, showStructure);
 
     return true;
 }
 
 void neuralNework::NN::showStructure(
-    arma::Mat<double> input,
-    arma::Mat<double> inputWeights,
-    arma::Mat<double> output,
-    std::vector<arma::Mat<double>> hiddenLayers,
-    std::vector<arma::Mat<double>> hiddenWeights,
+    std::vector<arma::Mat<double>> layers,
     bool showMatrices)
 {
 
-    std::cout << "//////////////////////// Layers ///////////////////////////" << std::endl;
-    std::cout << "Input  layer   - \t" << input.n_rows << "x" << input.n_cols << std::endl;
-    if (showMatrices)
-        std::cout << input << std::endl;
-
-    for (unsigned int i = 0; i < hiddenLayers.size(); i++)
+    std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
+    for (int i = -1; i < layers.size(); i++)
     {
-        std::cout << "Hidden layer " << i << " - \t" << hiddenLayers[i].n_rows << "x" << hiddenLayers[i].n_cols << std::endl;
+        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Layer_" << i << std::endl;
         if (showMatrices)
-            std::cout << hiddenLayers[i] << std::endl;
+            std::cout << layers[i] << std::endl;
+
+        i++;
+
+        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Weights_" << i << std::endl;
+        if (showMatrices)
+            std::cout << layers[i] << std::endl;
     }
+}
 
-    std::cout << "Output layer   - \t" << output.n_rows << "x" << output.n_cols << std::endl;
-    if (showMatrices)
-        std::cout << output << std::endl;
+void neuralNework::NN::feedForward()
+{
 
-    std::cout << "//////////////////////// Weights ///////////////////////////" << std::endl;
-    std::cout << "Input  weight    - \t" << inputWeights.n_rows << "x" << inputWeights.n_cols << std::endl;
-    if (showMatrices)
-        std::cout << inputWeights << std::endl;
+    unsigned size = this->neuralNeworkMatrices.size() - 2;
 
-    for (unsigned int i = 0; i < hiddenLayers.size(); i++)
+    for (unsigned i = 0; i < size; i += 2)
     {
-        std::cout << "Hidden weights " << i << " - \t" << hiddenWeights[i].n_rows << "x" << hiddenWeights[i].n_cols << std::endl;
-        if (showMatrices)
-            std::cout << hiddenWeights[i] << std::endl;
+        this->neuralNeworkMatrices[i + 2] =
+            this->neuralNeworkMatrices[i + 1] * this->neuralNeworkMatrices[i];
+
+        this->neuralNeworkMatrices[i + 2].transform(this->hiddenLayersFunctions[i / 2]);
+
+        std::cout << this->neuralNeworkMatrices[i] << std::endl;
+        std::cout << this->neuralNeworkMatrices[i + 2] << std::endl;
     }
+}
+
+void neuralNework::NN::backPropagation() {
+    
 }
 
 ////////////////////////////////////////////////////////////
