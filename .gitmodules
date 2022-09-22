@@ -1,0 +1,3 @@
+[submodule "src/lib/armadillo-code"]
+	path = src/lib/armadillo-code
+	url = https://gitlab.com/conradsnicta/armadillo-code.git
