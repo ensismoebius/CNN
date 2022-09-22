@@ -41,9 +41,6 @@ bool neuralNework::NN::assemble()
         this->inputSize // inputWeightsCols
     );
 
-    // Input zMatrix
-    arma::Mat<double> inputZMatrix(inputWeightsRows, 1);
-
     // The hidden layers
     std::vector<arma::Mat<double>> hiddenLayers;
     // The hidden weights

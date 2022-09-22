@@ -34,3 +34,4 @@
 # Folders
 /build
 /src/lib/eigen
+/.vscode
