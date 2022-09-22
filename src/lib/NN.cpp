@@ -98,23 +98,37 @@ void neuralNework::NN::showStructure(
     arma::Mat<double> inputWeights,
     arma::Mat<double> output,
     std::vector<arma::Mat<double>> hiddenLayers,
-    std::vector<arma::Mat<double>> hiddenWeights)
+    std::vector<arma::Mat<double>> hiddenWeights,
+    bool showMatrices)
 {
-    std::cout << "Input - " << input.n_rows << "x" << input.n_cols << std::endl;
-    std::cout << input << std::endl;
-    std::cout << "Input weight - " << inputWeights.n_rows << "x" << inputWeights.n_cols << std::endl;
-    std::cout << inputWeights << std::endl;
+
+    std::cout << "//////////////////////// Layers ///////////////////////////" << std::endl;
+    std::cout << "Input  layer   - \t" << input.n_rows << "x" << input.n_cols << std::endl;
+    if (showMatrices)
+        std::cout << input << std::endl;
 
     for (unsigned int i = 0; i < hiddenLayers.size(); i++)
     {
-        std::cout << "Hidden layer " << i << " - " << hiddenLayers[i].n_rows << "x" << hiddenLayers[i].n_cols << std::endl;
-        std::cout << hiddenLayers[i] << std::endl;
-        std::cout << "Hidden weights " << i << " - " << hiddenWeights[i].n_rows << "x" << hiddenWeights[i].n_cols << std::endl;
-        std::cout << hiddenWeights[i] << std::endl;
+        std::cout << "Hidden layer " << i << " - \t" << hiddenLayers[i].n_rows << "x" << hiddenLayers[i].n_cols << std::endl;
+        if (showMatrices)
+            std::cout << hiddenLayers[i] << std::endl;
     }
 
-    std::cout << "Output layer - " << output.n_rows << "x" << output.n_cols << std::endl;
-    std::cout << output << std::endl;
+    std::cout << "Output layer   - \t" << output.n_rows << "x" << output.n_cols << std::endl;
+    if (showMatrices)
+        std::cout << output << std::endl;
+
+    std::cout << "//////////////////////// Weights ///////////////////////////" << std::endl;
+    std::cout << "Input  weight    - \t" << inputWeights.n_rows << "x" << inputWeights.n_cols << std::endl;
+    if (showMatrices)
+        std::cout << inputWeights << std::endl;
+
+    for (unsigned int i = 0; i < hiddenLayers.size(); i++)
+    {
+        std::cout << "Hidden weights " << i << " - \t" << hiddenWeights[i].n_rows << "x" << hiddenWeights[i].n_cols << std::endl;
+        if (showMatrices)
+            std::cout << hiddenWeights[i] << std::endl;
+    }
 }
 
 ////////////////////////////////////////////////////////////
