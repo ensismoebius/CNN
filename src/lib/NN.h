@@ -17,25 +17,31 @@ namespace neuralNework
     enum LayerType
     {
         Input,
-        FullConnected,
+        Spike,
         Residual,
-        Spike
+        FullConnected
     };
 
     class NN
     {
     private:
-        unsigned int inputSize;
+        unsigned inputSize;
+        unsigned outputSize;
         std::vector<double> hiddenLayersSizes;
         std::vector<LayerType> hiddenLayersTypes;
         std::vector<ActivationFunction> hiddenLayersFunctions;
-        unsigned int outputSize;
 
     public:
-        NN(unsigned int inputSize, unsigned int outputSize);
         ~NN();
-        bool addLayer(unsigned int nodes, LayerType type, ActivationFunction function);
+        NN(unsigned inputSize, unsigned outputSize);
+        bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
         bool assemble();
+        void showStructure(
+            arma::Mat<double> input,
+            arma::Mat<double> inputWeights,
+            arma::Mat<double> output,
+            std::vector<arma::Mat<double>> hiddenLayers,
+            std::vector<arma::Mat<double>> hiddenWeights);
     };
 }
 #endif // SRC_LIB_NN_H

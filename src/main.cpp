@@ -3,9 +3,9 @@
 int main(int argc, char const *argv[])
 {
     using namespace neuralNework;
-    NN network(2, 2);
-
-    network.assemble();
+    NN nn(2, 1);
+    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Sigmoid);
+    nn.assemble();
 
     return 0;
 }
