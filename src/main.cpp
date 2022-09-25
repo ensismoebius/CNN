@@ -15,5 +15,10 @@ int main(int argc, char const *argv[])
     nn.assemble();
     nn.feedForward();
     nn.showStructure(true);
+
+    arma::Mat<double> target(1,1);
+    target.at(0,0) = 1;
+
+    nn.backPropagation(target);
     return 0;
 }

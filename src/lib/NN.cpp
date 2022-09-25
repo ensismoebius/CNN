@@ -118,9 +118,16 @@ void neuralNework::NN::feedForward()
     }
 }
 
-void neuralNework::NN::backPropagation()
+void neuralNework::NN::backPropagation(arma::Mat<double> target)
 {
-    
+    // Calculates the error
+    std::cout << target << std::endl << std::flush;
+
+    auto output =  this->networkMatrices[(this->layersSizes.size() -1)*2];
+    std::cout << output << std::endl;
+
+    auto error = output - target;
+    std::cout << error << std::endl;
 }
 
 ////////////////////////////////////////////////////////////

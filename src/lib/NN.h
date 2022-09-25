@@ -66,7 +66,7 @@ namespace neuralNework
         bool assemble();
         void showStructure(bool showMatrices = false);
         void feedForward();
-        void backPropagation();
+        void backPropagation(arma::Mat<double> target);
     };
 }
 #endif // SRC_LIB_NN_H
