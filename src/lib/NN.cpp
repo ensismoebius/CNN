@@ -57,7 +57,7 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
     return true;
 }
 
-bool neuralNework::NN::assemble(bool showStructure)
+bool neuralNework::NN::assemble()
 {
     /////////////////////////////////////////////////////////////
     /////// The hidden weights creating and initializing ////////
@@ -77,15 +77,10 @@ bool neuralNework::NN::assemble(bool showStructure)
         this->networkMatrices.push_back(hiddenLayer);
         this->networkMatrices.push_back(hiddenWeight);
     }
-
-    this->showStructure(this->networkMatrices, showStructure);
-
     return true;
 }
 
-void neuralNework::NN::showStructure(
-    std::vector<arma::Mat<double>> layers,
-    bool showMatrices)
+void neuralNework::NN::showStructure(bool showMatrices)
 {
 
     std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
@@ -94,16 +89,16 @@ void neuralNework::NN::showStructure(
     // Each layer has its weights companions
     for (unsigned i = 0; i < size; i += 2)
     {
-        std::cout << layers[i].n_rows << "x" << layers[i].n_cols << " - Layer_" << i / 2 << std::endl;
+        std::cout << this->networkMatrices[i].n_rows << "x" << this->networkMatrices[i].n_cols << " - Layer_" << i / 2 << std::endl;
         if (showMatrices)
-            std::cout << layers[i] << std::endl;
+            std::cout << this->networkMatrices[i] << std::endl;
 
         if (i == size - 1)
             break;
 
-        std::cout << layers[i + 1].n_rows << "x" << layers[i + 1].n_cols << " - Weights_" << i / 2 << std::endl;
+        std::cout << this->networkMatrices[i + 1].n_rows << "x" << this->networkMatrices[i + 1].n_cols << " - Weights_" << i / 2 << std::endl;
         if (showMatrices)
-            std::cout << layers[i + 1] << std::endl;
+            std::cout << this->networkMatrices[i + 1] << std::endl;
     }
 }
 
@@ -114,16 +109,18 @@ void neuralNework::NN::feedForward()
     // Each layer has its weights companions
     for (unsigned i = 0; i < size; i += 2)
     {
-        // Generate the zMatrix = (input * weights)
+        // Generate the zMatrix = (weights * input)
         this->networkMatrices[i + 2] = this->networkMatrices[i + 1] * this->networkMatrices[i];
 
         // Apply activation function
+        // output = activationFunction(zMatrix)
         this->networkMatrices[i + 2].transform(this->activationFunctions[i / 2]);
     }
 }
 
 void neuralNework::NN::backPropagation()
 {
+    
 }
 
 ////////////////////////////////////////////////////////////

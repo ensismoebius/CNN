@@ -63,10 +63,8 @@ namespace neuralNework
         ~NN();
         NN();
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
-        bool assemble(bool showStructure = false);
-        void showStructure(
-            std::vector<arma::Mat<double>> layers,
-            bool showMatrices = false);
+        bool assemble();
+        void showStructure(bool showMatrices = false);
         void feedForward();
         void backPropagation();
     };

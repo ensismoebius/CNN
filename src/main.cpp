@@ -12,8 +12,8 @@ int main(int argc, char const *argv[])
     nn.addLayer(3, LayerType::FullConnected, ActivationFunction::Relu);
     nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Sigmoid);
     nn.addLayer(1, LayerType::Output, ActivationFunction::Sigmoid);
-    nn.assemble(true);
+    nn.assemble();
     nn.feedForward();
-
+    nn.showStructure(true);
     return 0;
 }
