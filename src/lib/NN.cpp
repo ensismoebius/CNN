@@ -16,9 +16,16 @@ neuralNework::NN::NN()
 
 bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFunction function)
 {
+
+    // The first layer must be an input
+    if (this->layersTypes.size() == 0 && type != LayerType::Input)
+        return false;
+
+    // Adding layers
     this->layersTypes.push_back(type);
     this->layersSizes.push_back(nodes);
 
+    // The last is just an output
     if (type == LayerType::Output)
         return true;
 
@@ -121,9 +128,10 @@ void neuralNework::NN::feedForward()
 void neuralNework::NN::backPropagation(arma::Mat<double> target)
 {
     // Calculates the error
-    std::cout << target << std::endl << std::flush;
+    std::cout << target << std::endl
+              << std::flush;
 
-    auto output =  this->networkMatrices[(this->layersSizes.size() -1)*2];
+    auto output = this->networkMatrices[(this->layersSizes.size() - 1) * 2];
     std::cout << output << std::endl;
 
     auto error = output - target;
