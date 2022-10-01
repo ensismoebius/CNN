@@ -165,13 +165,13 @@ void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<doub
     // Calculates the first error
     static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
 
-    // Calculate the error
+    // Calculate the error and apply the error function
     static arma::Mat<double> error = output - target;
     error.transform(this->errorFunction);
 
     std::cout << error << std::endl;
 
-    // Calculates another errors, from last to first
+    // Backpropagates the error from last to first
     unsigned size = this->networkMatrices.size() - 1;
     for (unsigned i = size; i > 0; i--)
     {
