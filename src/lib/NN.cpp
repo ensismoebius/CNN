@@ -66,22 +66,14 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
 
 bool neuralNework::NN::assemble()
 {
-    /////////////////////////////////////////////////////////////
-    /////// The hidden weights creating and initializing ////////
-    /////////////////////////////////////////////////////////////
-    for (unsigned i = 0; i < this->layersSizes.size(); i++)
+    //////////////////////////////////////////////////////
+    /////// The weights creating and initializing ////////
+    //////////////////////////////////////////////////////
+    for (unsigned i = 0; i < this->layersSizes.size() - 1; i++)
     {
-        //// Initialise all hidden layers
-        arma::Mat<double> hiddenLayer(
-            this->layersSizes[i],
-            1);
-
-        arma::Mat<double> hiddenWeight(
-            this->layersSizes[i + 1],
-            this->layersSizes[i]);
+        arma::Mat<double> hiddenWeight(this->layersSizes[i + 1], this->layersSizes[i]);
         hiddenWeight.randu();
 
-        this->networkMatrices.push_back(hiddenLayer);
         this->networkMatrices.push_back(hiddenWeight);
     }
     return true;
@@ -89,53 +81,67 @@ bool neuralNework::NN::assemble()
 
 void neuralNework::NN::showStructure(bool showMatrices)
 {
-
     std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
-    unsigned size = this->networkMatrices.size() - 1;
+    unsigned size = this->networkMatrices.size();
 
     // Each layer has its weights companions
-    for (unsigned i = 0; i < size; i += 2)
+    for (unsigned i = 0; i < size; i++)
     {
-        std::cout << this->networkMatrices[i].n_rows << "x" << this->networkMatrices[i].n_cols << " - Layer_" << i / 2 << std::endl;
-        if (showMatrices)
-            std::cout << this->networkMatrices[i] << std::endl;
+        std::cout << this->layersSizes[i] << "x" << 1 << " - Layer_" << i << std::endl;
 
         if (i == size - 1)
             break;
 
-        std::cout << this->networkMatrices[i + 1].n_rows << "x" << this->networkMatrices[i + 1].n_cols << " - Weights_" << i / 2 << std::endl;
+        std::cout << this->networkMatrices[i].n_rows << "x" << this->networkMatrices[i].n_cols << " - Weights_" << i << std::endl;
         if (showMatrices)
-            std::cout << this->networkMatrices[i + 1] << std::endl;
+            std::cout << this->networkMatrices[i] << std::endl;
     }
+
+    std::cout << "/////////////////////// Layers and weights end //////////////////////////" << std::endl;
 }
 
-void neuralNework::NN::feedForward()
+arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double> &input)
 {
-    unsigned size = this->networkMatrices.size() - 2;
+    auto output =
+        arma::mat(
+            // Generate the zMatrix = (weights * input)
+            this->networkMatrices[0] * input)
+            // Apply activation function
+            // output = activationFunction(zMatrix)
+            .transform(this->activationFunctions[0]);
 
-    // Each layer has its weights companions
-    for (unsigned i = 0; i < size; i += 2)
+    // Each layer has its weights companions except for the output layer
+    unsigned size = this->networkMatrices.size();
+    for (unsigned i = 1; i < size; i++)
     {
-        // Generate the zMatrix = (weights * input)
-        this->networkMatrices[i + 2] = this->networkMatrices[i + 1] * this->networkMatrices[i];
-
-        // Apply activation function
-        // output = activationFunction(zMatrix)
-        this->networkMatrices[i + 2].transform(this->activationFunctions[i / 2]);
+        output =
+            arma::mat(
+                // Generate the zMatrix = (weights * input)
+                this->networkMatrices[i] * output)
+                // Apply activation function
+                // output = activationFunction(zMatrix)
+                .transform(this->activationFunctions[i]);
     }
+
+    return output;
 }
 
-void neuralNework::NN::backPropagation(arma::Mat<double> target)
+void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<double> &input)
 {
+
     // Calculates the error
-    std::cout << target << std::endl
-              << std::flush;
+    arma::Mat<double> output = neuralNework::NN::feedForward(input);
+    arma::Mat<double> error = output - target;
 
-    auto output = this->networkMatrices[(this->layersSizes.size() - 1) * 2];
-    std::cout << output << std::endl;
-
-    auto error = output - target;
     std::cout << error << std::endl;
+
+    unsigned size = this->networkMatrices.size() - 1;
+    // Each layer has its weights companions except for the output layer
+    for (unsigned i = size; i > 0; i--)
+    {
+        error = this->networkMatrices[i].t() * error;
+        std::cout << error << std::endl;
+    }
 }
 
 ////////////////////////////////////////////////////////////

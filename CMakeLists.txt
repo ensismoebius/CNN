@@ -40,7 +40,6 @@ find_package(OpenMP)
 set (SRCS
 src/main.cpp
 src/lib/NN.cpp
-src/lib/inpuLayer.cpp
 )
 
 # Include dirs

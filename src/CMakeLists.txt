@@ -11,7 +11,6 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 add_executable(TesteNeuro
 src/main.cpp
 src/lib/NN.cpp
-src/lib/inpuLayer.cpp
 )
 
 target_link_libraries(TesteNeuro ${ARMADILLO_LIBRARIES})

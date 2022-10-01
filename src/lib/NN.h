@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <armadillo>
-#include "InputLayer.h"
 
 namespace neuralNework
 {
@@ -65,8 +64,8 @@ namespace neuralNework
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
         bool assemble();
         void showStructure(bool showMatrices = false);
-        void feedForward();
-        void backPropagation(arma::Mat<double> target);
+        arma::Mat<double> feedForward(arma::Mat<double> &input);
+        void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
     };
 }
 #endif // SRC_LIB_NN_H

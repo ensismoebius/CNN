@@ -6,21 +6,19 @@ int main(int argc, char const *argv[])
     NN nn;
 
     nn.addLayer(2, LayerType::Input, ActivationFunction::Sigmoid);
-    nn.addLayer(3, LayerType::FullConnected, ActivationFunction::Relu);
-    nn.addLayer(4, LayerType::FullConnected, ActivationFunction::Sigmoid);
-    nn.addLayer(5, LayerType::FullConnected, ActivationFunction::Relu);
-    nn.addLayer(4, LayerType::FullConnected, ActivationFunction::Sigmoid);
-    nn.addLayer(3, LayerType::FullConnected, ActivationFunction::Relu);
-    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Sigmoid);
+    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Relu);
     nn.addLayer(1, LayerType::Output, ActivationFunction::Sigmoid);
 
-    nn.assemble();
-    nn.feedForward();
-    nn.showStructure(true);
-
     arma::Mat<double> target(1, 1);
-    target.at(0, 0) = 1;
+    target.at(0, 0) = 0;
 
-    nn.backPropagation(target);
+    arma::Mat<double> input(2, 1);
+    input.at(0, 0) = 1;
+    input.at(1, 0) = 1;
+
+    nn.assemble();
+    nn.feedForward(input);
+    nn.showStructure(true);
+    nn.backPropagation(target, input);
     return 0;
 }
