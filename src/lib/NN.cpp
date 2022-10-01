@@ -10,8 +10,39 @@ neuralNework::NN::~NN()
 {
 }
 
-neuralNework::NN::NN()
+//////////////////////////////////////////////////////
+//////////////// Error functions /////////////////////
+//////////////////////////////////////////////////////
+
+double neuralNework::absError(double error)
 {
+    return std::abs(error);
+}
+
+double neuralNework::simpleError(double error)
+{
+    return error;
+}
+
+double neuralNework::quadraticError(double error)
+{
+    return std::pow(error, 2);
+}
+
+neuralNework::NN::NN(ErrorFunction errorFunction)
+{
+    switch (errorFunction)
+    {
+    case AbsoluteError:
+        this->errorFunction = absError;
+        break;
+    case SimpleError:
+        this->errorFunction = simpleError;
+        break;
+    case QuadraticError:
+        this->errorFunction = quadraticError;
+        break;
+    }
 }
 
 bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFunction function)
@@ -133,7 +164,11 @@ void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<doub
 {
     // Calculates the first error
     static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
+
+    // Calculate the error
     static arma::Mat<double> error = output - target;
+    error.transform(this->errorFunction);
+
     std::cout << error << std::endl;
 
     // Calculates another errors, from last to first
@@ -145,25 +180,6 @@ void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<doub
     }
 
     //
-}
-
-//////////////////////////////////////////////////////
-//////////////// Error functions /////////////////////
-//////////////////////////////////////////////////////
-
-double neuralNework::absError(double output, double target)
-{
-    return std::abs(output - target);
-}
-
-double neuralNework::simpleError(double output, double target)
-{
-    return output - target;
-}
-
-double neuralNework::quadraticError(double output, double target)
-{
-    return std::pow(output - target, 2);
 }
 
 ////////////////////////////////////////////////////////////

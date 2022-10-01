@@ -3,7 +3,7 @@
 int main(int argc, char const *argv[])
 {
     using namespace neuralNework;
-    NN nn;
+    NN nn(ErrorFunction::QuadraticError);
 
     nn.addLayer(2, LayerType::Input, ActivationFunction::Sigmoid);
     nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Relu);

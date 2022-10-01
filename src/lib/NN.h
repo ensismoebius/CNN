@@ -38,9 +38,9 @@ namespace neuralNework
         LeakyRelu
     };
 
-    double absError(double output, double target);
-    double simpleError(double output, double target);
-    double quadraticError(double output, double target);
+    double absError(double error);
+    double simpleError(double error);
+    double quadraticError(double error);
 
     enum ErrorFunction
     {
@@ -66,19 +66,21 @@ namespace neuralNework
         std::vector<double (*)(double)> activationFunctions;
         std::vector<double (*)(double)> activationFunctionsD;
 
+        double (*errorFunction)(double error);
+
         // Assembled neural network
         std::vector<arma::Mat<double>> networkMatrices;
 
     public:
+        NN(ErrorFunction errorFunction);
         ~NN();
-        NN();
-        bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
+
         bool assemble();
         void showStructure(bool showMatrices = false);
-        arma::Mat<double> feedForward(arma::Mat<double> &input);
         void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
+        bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
 
-        ;
+        arma::Mat<double> feedForward(arma::Mat<double> &input);
     };
 }
 #endif // SRC_LIB_NN_H
