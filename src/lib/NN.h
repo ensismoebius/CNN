@@ -38,6 +38,17 @@ namespace neuralNework
         LeakyRelu
     };
 
+    double absError(double output, double target);
+    double simpleError(double output, double target);
+    double quadraticError(double output, double target);
+
+    enum ErrorFunction
+    {
+        SimpleError,
+        AbsoluteError,
+        QuadraticError
+    };
+
     enum LayerType
     {
         Input,
@@ -66,6 +77,8 @@ namespace neuralNework
         void showStructure(bool showMatrices = false);
         arma::Mat<double> feedForward(arma::Mat<double> &input);
         void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
+
+        ;
     };
 }
 #endif // SRC_LIB_NN_H

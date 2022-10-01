@@ -16,6 +16,9 @@ neuralNework::NN::NN()
 
 bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFunction function)
 {
+    // A layer must have, at least, 1 node
+    if (nodes < 1)
+        return false;
 
     // The first layer must be an input
     if (this->layersTypes.size() == 0 && type != LayerType::Input)
@@ -128,20 +131,39 @@ arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double> &input)
 
 void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<double> &input)
 {
-
-    // Calculates the error
-    arma::Mat<double> output = neuralNework::NN::feedForward(input);
-    arma::Mat<double> error = output - target;
-
+    // Calculates the first error
+    static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
+    static arma::Mat<double> error = output - target;
     std::cout << error << std::endl;
 
+    // Calculates another errors, from last to first
     unsigned size = this->networkMatrices.size() - 1;
-    // Each layer has its weights companions except for the output layer
     for (unsigned i = size; i > 0; i--)
     {
         error = this->networkMatrices[i].t() * error;
         std::cout << error << std::endl;
     }
+
+    //
+}
+
+//////////////////////////////////////////////////////
+//////////////// Error functions /////////////////////
+//////////////////////////////////////////////////////
+
+double neuralNework::absError(double output, double target)
+{
+    return std::abs(output - target);
+}
+
+double neuralNework::simpleError(double output, double target)
+{
+    return output - target;
+}
+
+double neuralNework::quadraticError(double output, double target)
+{
+    return std::pow(output - target, 2);
 }
 
 ////////////////////////////////////////////////////////////
