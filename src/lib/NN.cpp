@@ -26,7 +26,7 @@ double neuralNework::simpleError(double error)
 
 double neuralNework::quadraticError(double error)
 {
-    return std::pow(error, 2);
+    return std::pow(error, 2) / 2;
 }
 
 neuralNework::NN::NN(ErrorFunction errorFunction)
@@ -165,21 +165,21 @@ void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<doub
     // Calculates the first error
     static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
 
-    // Calculate the error and apply the error function
+    // Calculate the error for each output
     static arma::Mat<double> error = output - target;
-    error.transform(this->errorFunction);
 
-    std::cout << error << std::endl;
-
-    // Backpropagates the error from last to first
-    unsigned size = this->networkMatrices.size() - 1;
-    for (unsigned i = size; i > 0; i--)
+    // Sum all the error and apply the error function on it
+    double sum = 0;
+    arma::mat::iterator it_end = error.end();
+    for (arma::mat::iterator it = error.begin(); it != it_end; ++it)
     {
-        error = this->networkMatrices[i].t() * error;
-        std::cout << error << std::endl;
+        std::cout << (*it) << std::endl;
+        sum += (*it);
     }
+    double totalError = this->errorFunction(sum);
+    std::cout << totalError << std::endl;
 
-    //
+    
 }
 
 ////////////////////////////////////////////////////////////
