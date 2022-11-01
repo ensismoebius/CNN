@@ -35,3 +35,4 @@
 /build
 /src/lib/eigen
 /.vscode
+CMakeLists.txt.user

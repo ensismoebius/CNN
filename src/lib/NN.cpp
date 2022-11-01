@@ -1,10 +1,10 @@
 #include "NN.h"
-#include <cmath>
-#include <vector>
-#include <limits>
-#include <iostream>
-#include <armadillo>
 #include <algorithm>
+#include <armadillo>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <vector>
 
 neuralNework::NN::~NN()
 {
@@ -31,8 +31,7 @@ double neuralNework::quadraticError(double error)
 
 neuralNework::NN::NN(ErrorFunction errorFunction)
 {
-    switch (errorFunction)
-    {
+    switch (errorFunction) {
     case AbsoluteError:
         this->errorFunction = absError;
         break;
@@ -63,8 +62,7 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
     if (type == LayerType::Output)
         return true;
 
-    switch (function)
-    {
+    switch (function) {
     case Relu:
         this->activationFunctions.push_back(relu);
         this->activationFunctionsD.push_back(reluD);
@@ -103,8 +101,7 @@ bool neuralNework::NN::assemble()
     //////////////////////////////////////////////////////
     /////// The weights creating and initializing ////////
     //////////////////////////////////////////////////////
-    for (unsigned i = 0; i < this->layersSizes.size() - 1; i++)
-    {
+    for (unsigned i = 0; i < this->layersSizes.size() - 1; i++) {
         arma::Mat<double> hiddenWeight(this->layersSizes[i + 1], this->layersSizes[i]);
         hiddenWeight.randu();
 
@@ -119,8 +116,7 @@ void neuralNework::NN::showStructure(bool showMatrices)
     unsigned size = this->networkMatrices.size();
 
     // Each layer has its weights companions
-    for (unsigned i = 0; i < size; i++)
-    {
+    for (unsigned i = 0; i < size; i++) {
         std::cout << this->layersSizes[i] << "x" << 1 << " - Layer_" << i << std::endl;
 
         if (i == size - 1)
@@ -134,33 +130,28 @@ void neuralNework::NN::showStructure(bool showMatrices)
     std::cout << "/////////////////////// Layers and weights end //////////////////////////" << std::endl;
 }
 
-arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double> &input)
+arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
 {
-    auto output =
-        arma::mat(
-            // Generate the zMatrix = (weights * input)
-            this->networkMatrices[0] * input)
-            // Apply activation function
-            // output = activationFunction(zMatrix)
-            .transform(this->activationFunctions[0]);
+    // Generate the zMatrix = (weights * input)
+    arma::mat output = this->networkMatrices[0] * input;
+    // Apply activation function
+    // output = activationFunction(zMatrix)
+    output.transform(this->activationFunctions[0]);
 
     // Each layer has its weights companions except for the output layer
     unsigned size = this->networkMatrices.size();
-    for (unsigned i = 1; i < size; i++)
-    {
-        output =
-            arma::mat(
-                // Generate the zMatrix = (weights * input)
-                this->networkMatrices[i] * output)
-                // Apply activation function
-                // output = activationFunction(zMatrix)
-                .transform(this->activationFunctions[i]);
+    for (unsigned i = 1; i < size; i++) {
+        // Generate the zMatrix = (weights * input)
+        output = this->networkMatrices[i] * output;
+        // Apply activation function
+        // output = activationFunction(zMatrix)
+        output.transform(this->activationFunctions[i]);
     }
 
     return output;
 }
 
-void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<double> &input)
+void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input)
 {
     // Calculates the first error
     static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
@@ -171,15 +162,12 @@ void neuralNework::NN::backPropagation(arma::Mat<double> &target, arma::Mat<doub
     // Sum all the error and apply the error function on it
     double sum = 0;
     arma::mat::iterator it_end = error.end();
-    for (arma::mat::iterator it = error.begin(); it != it_end; ++it)
-    {
+    for (arma::mat::iterator it = error.begin(); it != it_end; ++it) {
         std::cout << (*it) << std::endl;
         sum += (*it);
     }
     double totalError = this->errorFunction(sum);
     std::cout << totalError << std::endl;
-
-    
 }
 
 ////////////////////////////////////////////////////////////
@@ -250,7 +238,6 @@ double neuralNework::silu(double x)
 double neuralNework::siluD(double x)
 {
     return (
-               (1 + std::pow(M_E, -x)) +
-               (x + std::pow(M_E, -x))) /
-           (std::pow(1.0 + std::pow(M_E, -x), 2));
+               (1 + std::pow(M_E, -x)) + (x + std::pow(M_E, -x)))
+        / (std::pow(1.0 + std::pow(M_E, -x), 2));
 }
