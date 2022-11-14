@@ -1,12 +1,12 @@
 #include "lib/NN.h"
 
-int main(int argc, char const *argv[])
+int main(int argc, char const* argv[])
 {
     using namespace neuralNework;
     NN nn(ErrorFunction::QuadraticError);
 
-    nn.addLayer(2, LayerType::Input, ActivationFunction::Sigmoid);
-    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Relu);
+    nn.addLayer(2, LayerType::Input, ActivationFunction::None);
+    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Sigmoid);
     nn.addLayer(1, LayerType::Output, ActivationFunction::Sigmoid);
 
     arma::Mat<double> target(1, 1);
@@ -17,8 +17,8 @@ int main(int argc, char const *argv[])
     input.at(1, 0) = 1;
 
     nn.assemble();
-    nn.feedForward(input);
     nn.showStructure(true);
+    nn.feedForward(input);
     nn.backPropagation(target, input);
     return 0;
 }

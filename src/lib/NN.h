@@ -29,6 +29,7 @@ namespace neuralNework
 
     enum ActivationFunction
     {
+        None,
         Relu,
         Step,
         Silu,
@@ -70,13 +71,14 @@ namespace neuralNework
 
         // Assembled neural network
         std::vector<arma::Mat<double>> networkMatrices;
+        std::vector<arma::Mat<double>> networkBiases;
 
     public:
         NN(ErrorFunction errorFunction);
         ~NN();
 
         bool assemble();
-        void showStructure(bool showMatrices = false);
+        void showStructure(bool showValues = false);
         void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
 

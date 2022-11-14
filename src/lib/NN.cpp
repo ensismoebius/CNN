@@ -58,8 +58,8 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
     this->layersTypes.push_back(type);
     this->layersSizes.push_back(nodes);
 
-    // The last is just an output
-    if (type == LayerType::Output)
+    // The first is just an input
+    if (type == LayerType::Input)
         return true;
 
     switch (function) {
@@ -91,6 +91,8 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
         this->activationFunctions.push_back(leakyRelu);
         this->activationFunctionsD.push_back(leakyReluD);
         break;
+    case None:
+        break;
     }
 
     return true;
@@ -101,48 +103,72 @@ bool neuralNework::NN::assemble()
     //////////////////////////////////////////////////////
     /////// The weights creating and initializing ////////
     //////////////////////////////////////////////////////
-    for (unsigned i = 0; i < this->layersSizes.size() - 1; i++) {
+    const unsigned size = this->layersSizes.size();
+    unsigned i;
+    for (i = 0; i < size - 1; i++) {
+
+        // TODO we need to allocate some space for biases too, that is why the +1 at the layersSizes[i] ??????
+        // arma::Mat<double> hiddenWeight(this->layersSizes[i + 1], this->layersSizes[i] + 1);
+
+        // The weights beetween previous (layersSizes[i]) and next (layersSizes[i+1]) layer
         arma::Mat<double> hiddenWeight(this->layersSizes[i + 1], this->layersSizes[i]);
         hiddenWeight.randu();
 
+        // Biases for hidden layers
+        arma::Mat<double> biases(this->layersSizes[i + 1], 1);
+        biases.randu();
+
+        // Adds the weights
         this->networkMatrices.push_back(hiddenWeight);
+
+        // Adds the biases
+        this->networkBiases.push_back(biases);
     }
+
     return true;
 }
 
-void neuralNework::NN::showStructure(bool showMatrices)
+void neuralNework::NN::showStructure(bool showValues)
 {
-    std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
+    std::cout << "//////////////////////// Layers, biases and weights ///////////////////////////" << std::endl;
     unsigned size = this->networkMatrices.size();
+    unsigned i;
 
     // Each layer has its weights companions
-    for (unsigned i = 0; i < size; i++) {
+    for (i = 0; i < size; i++) {
         std::cout << this->layersSizes[i] << "x" << 1 << " - Layer_" << i << std::endl;
 
-        if (i == size - 1)
-            break;
-
         std::cout << this->networkMatrices[i].n_rows << "x" << this->networkMatrices[i].n_cols << " - Weights_" << i << std::endl;
-        if (showMatrices)
+        if (showValues)
             std::cout << this->networkMatrices[i] << std::endl;
-    }
 
-    std::cout << "/////////////////////// Layers and weights end //////////////////////////" << std::endl;
+        std::cout << "------------------------" << std::endl;
+        // layersSizes[i + 1] comes from the fact that the input layer has no biases
+        // the biases apply from the first hidden layer ahead
+        std::cout << this->layersSizes[i + 1] << "x" << 1 << " - Biases_" << i + 1 << std::endl;
+        if (showValues)
+            std::cout << this->networkBiases[i] << std::endl;
+    }
+    std::cout << this->layersSizes[i] << "x" << 1 << " - Layer_" << i << std::endl;
+
+    std::cout << "/////////////////////// Layers, biases and weights end //////////////////////////" << std::endl;
 }
 
 arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
 {
-    // Generate the zMatrix = (weights * input)
-    arma::mat output = this->networkMatrices[0] * input;
+    // Generate the zMatrix = (weights * input + biases)
+    arma::mat output = this->networkMatrices[0] * input + this->networkBiases[0];
     // Apply activation function
     // output = activationFunction(zMatrix)
     output.transform(this->activationFunctions[0]);
 
-    // Each layer has its weights companions except for the output layer
+    // Each 2 layer interval has its weights
+    // i=1 because the first interval is already
+    // used at the code above
     unsigned size = this->networkMatrices.size();
     for (unsigned i = 1; i < size; i++) {
-        // Generate the zMatrix = (weights * input)
-        output = this->networkMatrices[i] * output;
+        // Generate the zMatrix = (weights * input + biases)
+        output = this->networkMatrices[i] * output + this->networkBiases[i];
         // Apply activation function
         // output = activationFunction(zMatrix)
         output.transform(this->activationFunctions[i]);
@@ -155,19 +181,23 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
 {
     // Calculates the first error
     static const arma::Mat<double> output = neuralNework::NN::feedForward(input);
+    std::cout << output << std::endl;
 
     // Calculate the error for each output
     static arma::Mat<double> error = output - target;
 
-    // Sum all the error and apply the error function on it
-    double sum = 0;
-    arma::mat::iterator it_end = error.end();
-    for (arma::mat::iterator it = error.begin(); it != it_end; ++it) {
-        std::cout << (*it) << std::endl;
-        sum += (*it);
-    }
-    double totalError = this->errorFunction(sum);
-    std::cout << totalError << std::endl;
+    error.transform(this->errorFunction);
+
+    //    // Sums the results of the error function applied in the error
+    //    double sum = 0;
+    //    double divisor = 0;
+    //    arma::mat::iterator it_end = error.end();
+    //    for (arma::mat::iterator it = error.begin(); it != it_end; ++it) {
+    //        sum += this->errorFunction((*it));
+    //        divisor++;
+    //    }
+    //    double totalError = sum / divisor;
+    //    std::cout << totalError << std::endl;
 }
 
 ////////////////////////////////////////////////////////////
