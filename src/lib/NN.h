@@ -69,7 +69,7 @@ namespace neuralNework
         double (*errorFunction)(double error);
 
         // Assembled neural network
-        std::vector<arma::Mat<double>> networkMatrices;
+        std::vector<arma::Mat<double>> networkWeights;
 
     public:
         NN(ErrorFunction errorFunction);
