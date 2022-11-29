@@ -6,6 +6,9 @@
 
 namespace neuralNework
 {
+    double none(double x);
+    double noneD(double x);
+
     double step(double x);
     double stepD(double x);
 
@@ -35,7 +38,8 @@ namespace neuralNework
         Sigmoid,
         Hiperbolic,
         Softplus,
-        LeakyRelu
+        LeakyRelu,
+        None
     };
 
     double absError(double error);
@@ -75,10 +79,13 @@ namespace neuralNework
         NN(ErrorFunction errorFunction);
         ~NN();
 
+        arma::Mat<double> applyActivationFunc(arma::Mat<double> value, unsigned index);
+        arma::Mat<double> applyActivationFuncD(arma::Mat<double> value, unsigned index);
+
         bool assemble();
         void showStructure(bool showMatrices = false);
         void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
-        bool addLayer(unsigned nodes, LayerType type, ActivationFunction function);
+        bool addLayer(unsigned nodes, LayerType type, ActivationFunction function = None);
 
         arma::Mat<double> feedForward(arma::Mat<double> &input);
     };
