@@ -169,17 +169,17 @@ inline arma::Mat<double> neuralNework::NN::applyActivationFuncD(arma::Mat<double
 void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input)
 {
 
-    unsigned i = 0;
     float learnningRate = 0.01;
-    const unsigned size = this->networkWeights.size();
-
-    // Preparing to store the intermediate values
-    std::vector<arma::Mat<double>> layers(size);
 
     ////////////////////
     /// Feed forward ///
     ////////////////////
 
+    // Preparing to store the intermediate values
+    const unsigned size = this->networkWeights.size();
+    std::vector<arma::Mat<double>> layers(size);
+
+    unsigned i = 0;
     // Apply activation function
     // output = activationFunction(zMatrix)
     layers[i] = applyActivationFunc(
@@ -187,7 +187,7 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
         i + 1 // Index of activation function
     );
 
-    // Each layer has its weights companions except for the output layer
+    // Each layer has its weights except for the output layer
     for (i = 1; i < size; i++) {
         // Apply activation function
         // output = activationFunction(zMatrix)
@@ -200,11 +200,10 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     ///////////////////////
     /// Backpropagation ///
     ///////////////////////
-    // TODO Terminar o Backpropagation
+
     i--; // Points to output
     arma::Mat<double> errors = target - layers[i];
 
-    arma::Mat<double> gradient = this->applyActivationFuncD(layers[i], i) * errors * learnningRate;
     // delta = gradient * hidden.tranposed
     arma::Mat<double> gradientHiddenToOutput = (this->applyActivationFuncD(layers[i - 1], i) % errors) * learnningRate;
     arma::Mat<double> deltaHiddenToOutput = gradientHiddenToOutput * layers[i].t();
