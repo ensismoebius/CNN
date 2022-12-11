@@ -37,11 +37,6 @@ find_package(Threads REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(OpenMP)
 
-set (SRCS
-src/main.cpp
-src/lib/NN.cpp
-)
-
 # Include dirs
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
@@ -49,11 +44,39 @@ if(OpenMP_CXX_FOUND)
     include_directories(${OpenMP_CXX_INCLUDE_DIRS})
 endif()
 
+################################
+###### First executable ########
+################################
+
+set (SRCS
+src/main.cpp
+src/lib/NN.cpp
+)
+
 # Executable
 add_executable(${CMAKE_PROJECT_NAME} ${SRCS})
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
+    target_link_libraries(${CMAKE_PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${ARMADILLO_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${ARMADILLO_LIBRARIES})
+
+
+################################
+###### Second executable #######
+################################
+
+set (SRCS2
+src/main2.cpp
+)
+
+# Executable2
+add_executable(${CMAKE_PROJECT_NAME}2 ${SRCS2})
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${CMAKE_PROJECT_NAME}2 OpenMP::OpenMP_CXX)
+endif()
+
+target_link_libraries(${CMAKE_PROJECT_NAME}2 ${ARMADILLO_LIBRARIES})
+

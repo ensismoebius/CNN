@@ -63,8 +63,9 @@ namespace neuralNework
     };
 
     typedef struct LayerProperties{
-        LayerType type;
         int size;
+        LayerType type;
+        arma::Mat<double> weights;
         double (*activationFunction)(double input);
         double (*activationFunctionD)(double input);
     } LayerProperties;
@@ -72,15 +73,8 @@ namespace neuralNework
     class NN
     {
     private:
-        std::vector<double> layersSizes;
-        std::vector<LayerType> layersTypes;
-        std::vector<double (*)(double)> activationFunctions;
-        std::vector<double (*)(double)> activationFunctionsD;
-
+        std::vector<LayerProperties> layers;
         double (*errorFunction)(double error);
-
-        // Assembled neural network
-        std::vector<arma::Mat<double>> networkWeights;
 
     public:
         NN(ErrorFunction errorFunction);

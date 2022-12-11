@@ -51,47 +51,50 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
         return false;
 
     // The first layer must be an input
-    if (this->layersTypes.size() == 0 && type != LayerType::Input)
+    if (this->layers.size() == 0 && type != LayerType::Input)
         return false;
 
-    // Adding layers
-    this->layersTypes.push_back(type);
-    this->layersSizes.push_back(nodes);
+    LayerProperties layer;
+    layer.size = nodes;
+    layer.type = type;
 
     switch (function) {
     case None:
-        this->activationFunctions.push_back(none);
-        this->activationFunctionsD.push_back(noneD);
+        layer.activationFunction = none;
+        layer.activationFunctionD = noneD;
         break;
     case Relu:
-        this->activationFunctions.push_back(relu);
-        this->activationFunctionsD.push_back(reluD);
+        layer.activationFunction = relu;
+        layer.activationFunctionD = reluD;
         break;
     case Step:
-        this->activationFunctions.push_back(step);
-        this->activationFunctionsD.push_back(stepD);
+        layer.activationFunction = step;
+        layer.activationFunctionD = stepD;
         break;
     case Silu:
-        this->activationFunctions.push_back(silu);
-        this->activationFunctionsD.push_back(siluD);
+        layer.activationFunction = silu;
+        layer.activationFunctionD = siluD;
         break;
     case Sigmoid:
-        this->activationFunctions.push_back(sigmoid);
-        this->activationFunctionsD.push_back(sigmoidD);
+        layer.activationFunction = sigmoid;
+        layer.activationFunctionD = sigmoidD;
         break;
     case Hiperbolic:
-        this->activationFunctions.push_back(hiperbolicTangent);
-        this->activationFunctionsD.push_back(hiperbolicTangentD);
+        layer.activationFunction = hiperbolicTangent;
+        layer.activationFunctionD = hiperbolicTangentD;
         break;
     case Softplus:
-        this->activationFunctions.push_back(softplus);
-        this->activationFunctionsD.push_back(softplusD);
+        layer.activationFunction = softplus;
+        layer.activationFunctionD = softplusD;
         break;
     case LeakyRelu:
-        this->activationFunctions.push_back(leakyRelu);
-        this->activationFunctionsD.push_back(leakyReluD);
+        layer.activationFunction = leakyRelu;
+        layer.activationFunctionD = leakyReluD;
         break;
     }
+
+    // Adding layers
+    this->layers.push_back(layer);
 
     return true;
 }
@@ -101,11 +104,9 @@ bool neuralNework::NN::assemble()
     //////////////////////////////////////////////////////
     /////// The weights creating and initializing ////////
     //////////////////////////////////////////////////////
-    for (unsigned i = 0; i < this->layersSizes.size() - 1; i++) {
-        arma::Mat<double> hiddenWeight(this->layersSizes[i + 1], this->layersSizes[i]);
-        hiddenWeight.randu();
-
-        this->networkWeights.push_back(hiddenWeight);
+    for (unsigned i = 0; i < this->layers.size() - 1; i++) {
+        this->layers[i].weights.resize(this->layers[i + 1].size, this->layers[i].size);
+        this->layers[i].weights.randu();
     }
     return true;
 }
@@ -113,18 +114,18 @@ bool neuralNework::NN::assemble()
 void neuralNework::NN::showStructure(bool showMatrices)
 {
     std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
-    unsigned size = this->networkWeights.size();
+    unsigned size = this->layers.size();
 
     // Each layer has its weights companions
     for (unsigned i = 0; i < size; i++) {
-        std::cout << this->layersSizes[i] << "x" << 1 << " - Layer_" << i << std::endl;
+        std::cout << this->layers[i].size << "x" << 1 << " - Layer_" << i << std::endl;
 
         if (i == size - 1)
             break;
 
-        std::cout << this->networkWeights[i].n_rows << "x" << this->networkWeights[i].n_cols << " - Weights_" << i << std::endl;
+        std::cout << this->layers[i].weights.n_rows << "x" << this->layers[i].weights.n_cols << " - Weights_" << i << std::endl;
         if (showMatrices)
-            std::cout << this->networkWeights[i] << std::endl;
+            std::cout << this->layers[i].weights << std::endl;
     }
 
     std::cout << "/////////////////////// Layers and weights end //////////////////////////" << std::endl;
@@ -137,18 +138,18 @@ arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
     // Apply activation function
     // output = activationFunction(zMatrix)
     auto output = applyActivationFunc(
-        this->networkWeights[i] * input, // Generate the zMatrix = (weights * input)
+        this->layers[i].weights * input, // Generate the zMatrix = (weights * input)
         i + 1 // Index of activation function
     );
 
-    unsigned size = this->networkWeights.size();
+    unsigned size = this->layers.size();
 
     // Each layer has its weights companions except for the output layer
     for (i = 1; i < size; i++) {
         // Apply activation function
         // output = activationFunction(zMatrix)
         output = applyActivationFunc(
-            this->networkWeights[i] * output, // Generate the zMatrix = (weights * input)
+            this->layers[i].weights * output, // Generate the zMatrix = (weights * input)
             i + 1 // Index of activation function
         );
     }
@@ -158,12 +159,12 @@ arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
 
 inline arma::Mat<double> neuralNework::NN::applyActivationFunc(arma::Mat<double> value, unsigned index)
 {
-    return value.transform(this->activationFunctions[index]);
+    return value.transform(this->layers[index].activationFunction);
 }
 
 inline arma::Mat<double> neuralNework::NN::applyActivationFuncD(arma::Mat<double> value, unsigned index)
 {
-    return value.transform(this->activationFunctionsD[index]);
+    return value.transform(this->layers[index].activationFunctionD);
 }
 
 void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input)
@@ -176,14 +177,14 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     ////////////////////
 
     // Preparing to store the intermediate values
-    const unsigned size = this->networkWeights.size();
+    const unsigned size = this->layers.size();
     std::vector<arma::Mat<double>> layers(size);
 
     unsigned layerIndex = 0;
     // Apply activation function
     // output = activationFunction(zMatrix)
     layers[layerIndex] = applyActivationFunc(
-        this->networkWeights[layerIndex] * input, // Generate the zMatrix = (weights * input)
+        this->layers[layerIndex].weights * input, // Generate the zMatrix = (weights * input)
         layerIndex + 1 // Index of activation function
     );
 
@@ -192,7 +193,7 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
         // Apply activation function
         // output = activationFunction(zMatrix)
         layers[layerIndex] = applyActivationFunc(
-            this->networkWeights[layerIndex] * layers[layerIndex - 1], // Generate the zMatrix = (weights * input)
+            this->layers[layerIndex].weights * layers[layerIndex - 1], // Generate the zMatrix = (weights * input)
             layerIndex + 1 // Index of activation function
         );
     }
@@ -209,14 +210,14 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     arma::Mat<double> deltaHiddenToOutput = gradientHiddenToOutput * layers[layerIndex].t();
 
     // Update the weights
-    this->networkWeights[layerIndex] += deltaHiddenToOutput;
+    this->layers[layerIndex].weights += deltaHiddenToOutput;
     // Update bias weights
     //    this->biasOutput += gradientHiddenToOutput;
 
     for (; layerIndex > 0; layerIndex++) {
-        layers[layerIndex].transform(this->activationFunctionsD[layerIndex]);
-        this->networkWeights[layerIndex] += (layers[layerIndex] % errors) * learnningRate * layers[layerIndex].t();
-        errors = this->networkWeights[layerIndex].t() + layers[layerIndex];
+        layers[layerIndex].transform(this->layers[layerIndex].activationFunctionD);
+        this->layers[layerIndex].weights += (layers[layerIndex] % errors) * learnningRate * layers[layerIndex].t();
+        errors = this->layers[layerIndex].weights.t() + layers[layerIndex];
     }
 }
 
