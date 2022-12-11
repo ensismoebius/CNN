@@ -179,21 +179,21 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     const unsigned size = this->networkWeights.size();
     std::vector<arma::Mat<double>> layers(size);
 
-    unsigned i = 0;
+    unsigned layerIndex = 0;
     // Apply activation function
     // output = activationFunction(zMatrix)
-    layers[i] = applyActivationFunc(
-        this->networkWeights[i] * input, // Generate the zMatrix = (weights * input)
-        i + 1 // Index of activation function
+    layers[layerIndex] = applyActivationFunc(
+        this->networkWeights[layerIndex] * input, // Generate the zMatrix = (weights * input)
+        layerIndex + 1 // Index of activation function
     );
 
     // Each layer has its weights except for the output layer
-    for (i = 1; i < size; i++) {
+    for (layerIndex = 1; layerIndex < size; layerIndex++) {
         // Apply activation function
         // output = activationFunction(zMatrix)
-        layers[i] = applyActivationFunc(
-            this->networkWeights[i] * layers[i - 1], // Generate the zMatrix = (weights * input)
-            i + 1 // Index of activation function
+        layers[layerIndex] = applyActivationFunc(
+            this->networkWeights[layerIndex] * layers[layerIndex - 1], // Generate the zMatrix = (weights * input)
+            layerIndex + 1 // Index of activation function
         );
     }
 
@@ -201,22 +201,22 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     /// Backpropagation ///
     ///////////////////////
 
-    i--; // Points to output
-    arma::Mat<double> errors = target - layers[i];
+    layerIndex--; // Points to output
+    arma::Mat<double> errors = target - layers[layerIndex];
 
     // delta = gradient * hidden.tranposed
-    arma::Mat<double> gradientHiddenToOutput = (this->applyActivationFuncD(layers[i - 1], i) % errors) * learnningRate;
-    arma::Mat<double> deltaHiddenToOutput = gradientHiddenToOutput * layers[i].t();
+    arma::Mat<double> gradientHiddenToOutput = (this->applyActivationFuncD(layers[layerIndex - 1], layerIndex) % errors) * learnningRate;
+    arma::Mat<double> deltaHiddenToOutput = gradientHiddenToOutput * layers[layerIndex].t();
 
     // Update the weights
-    this->networkWeights[i] += deltaHiddenToOutput;
+    this->networkWeights[layerIndex] += deltaHiddenToOutput;
     // Update bias weights
     //    this->biasOutput += gradientHiddenToOutput;
 
-    for (; i > 0; i++) {
-        layers[i].transform(this->activationFunctionsD[i]);
-        this->networkWeights[i] += (layers[i] % errors) * learnningRate * layers[i].t();
-        errors = this->networkWeights[i].t() + layers[i];
+    for (; layerIndex > 0; layerIndex++) {
+        layers[layerIndex].transform(this->activationFunctionsD[layerIndex]);
+        this->networkWeights[layerIndex] += (layers[layerIndex] % errors) * learnningRate * layers[layerIndex].t();
+        errors = this->networkWeights[layerIndex].t() + layers[layerIndex];
     }
 }
 

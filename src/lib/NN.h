@@ -62,6 +62,13 @@ namespace neuralNework
         Output
     };
 
+    typedef struct LayerProperties{
+        LayerType type;
+        int size;
+        double (*activationFunction)(double input);
+        double (*activationFunctionD)(double input);
+    } LayerProperties;
+
     class NN
     {
     private:
