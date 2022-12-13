@@ -45,6 +45,9 @@ namespace neuralNework
     double absError(double error);
     double simpleError(double error);
     double quadraticError(double error);
+    double absErrorD(double error);
+    double simpleErrorD(double error);
+    double quadraticErrorD(double error);
 
     enum ErrorFunction
     {
@@ -65,6 +68,8 @@ namespace neuralNework
     typedef struct LayerProperties{
         int size;
         LayerType type;
+        arma::Mat<double> bias;
+        arma::Mat<double> values;
         arma::Mat<double> weights;
         double (*activationFunction)(double input);
         double (*activationFunctionD)(double input);
@@ -75,13 +80,14 @@ namespace neuralNework
     private:
         std::vector<LayerProperties> layers;
         double (*errorFunction)(double error);
+        double (*errorFunctionD)(double error);
 
     public:
         NN(ErrorFunction errorFunction);
         ~NN();
 
-        arma::Mat<double> applyActivationFunc(arma::Mat<double> value, unsigned index);
-        arma::Mat<double> applyActivationFuncD(arma::Mat<double> value, unsigned index);
+        inline void applyActivationFunc(arma::Mat<double> & value, unsigned index);
+        inline void applyActivationFuncD(arma::Mat<double> & value, unsigned index);
 
         bool assemble();
         void showStructure(bool showMatrices = false);
