@@ -225,23 +225,35 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
         std::cout << this->layers[i].values << std::endl;
     }
 
-    //    arma::Mat<double> errors = target - this->layers[i].values;
-    //    errors.transform(this->errorFunction);
-    //    std::cout << errors << std::endl;
-
     ///////////////////////
     /// Backpropagation ///
     ///////////////////////
 
     i--;
-    arma::Mat<double> errorSlope = target - this->layers[i].values;
+
+    arma::Mat<double> errorSlope = this->layers[i].values - target;
     errorSlope.transform(this->errorFunctionD);
     std::cout << errorSlope << std::endl;
 
     for (; i > 0; i--) {
-        this->layers[i].values = this->layers[i].weights * this->layers[i - 1].values + this->layers[i].bias;
-        this->applyActivationFunc(this->layers[i].values, i);
+
+        // this is the derivative of activation function with respect with its input (the z matrix)
+        applyActivationFuncD(this->layers[i].values, i);
         std::cout << this->layers[i].values << std::endl;
+
+        // this is the derivative of the Z matrix with respect with his weights (aka the value of the layer 1).
+        std::cout << this->layers[i - 1].values.t() << std::endl;
+
+        auto delta = errorSlope % this->layers[i].values;
+        std::cout << delta << std::endl;
+
+        // this is the derivative of the error with respect to the weights
+        auto gradient = delta * this->layers[i - 1].values.t();
+        std::cout << gradient << std::endl;
+
+        arma::Mat<double> weight1to2Prime = this->layers[i].weights - learnningRate * gradient;
+        std::cout << this->layers[i].weights << "to" << std::endl
+                  << weight1to2Prime << std::endl;
     }
 }
 
