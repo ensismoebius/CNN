@@ -91,7 +91,7 @@ namespace neuralNework
 
         bool assemble();
         void showStructure(bool showMatrices = false);
-        void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input);
+        void backPropagation(arma::Mat<double> &target, arma::Mat<double> &input, float learnningRate);
         bool addLayer(unsigned nodes, LayerType type, ActivationFunction function = None);
 
         arma::Mat<double> feedForward(arma::Mat<double> &input);

@@ -7,8 +7,8 @@ int main(int argc, char const* argv[])
     NN nn(ErrorFunction::QuadraticError);
 
     nn.addLayer(2, LayerType::Input);
-    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Sigmoid);
-    nn.addLayer(2, LayerType::Output, ActivationFunction::Sigmoid);
+    nn.addLayer(2, LayerType::FullConnected, ActivationFunction::Relu);
+    nn.addLayer(2, LayerType::Output, ActivationFunction::Relu);
 
     arma::Mat<double> target(2, 1);
     target.at(0, 0) = 0.01;
@@ -22,9 +22,11 @@ int main(int argc, char const* argv[])
     //    nn.feedForward(input);
     //    nn.showStructure(true); // TODO Corrigir para mostrar tudo corretamente
 
-    for (int i = 0; i < 200000; i++) {
-        nn.backPropagation(target, input);
+    for (int i = 0; i < 100; i++) {
+        nn.backPropagation(target, input, 0.5);
     }
+
+    std::cout << nn.feedForward(input);
 
     return 0;
 }

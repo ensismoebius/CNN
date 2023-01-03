@@ -173,24 +173,25 @@ void neuralNework::NN::showStructure(bool showMatrices)
 
 arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
 {
-    unsigned i = 0;
+    int layerIndex = 0;
 
-    // Apply activation function
-    // output = activationFunction(zMatrix)
-    arma::Mat<double> output = this->layers[i].weights * input; // Generate the zMatrix = (weights * input)
-    applyActivationFunc(output, i + 1);
+    // First layer is the input
+    this->layers[layerIndex].values = input;
 
-    unsigned size = this->layers.size();
+    layerIndex = 1;
 
-    // Each layer has its weights companions except for the output layer
-    for (i = 1; i < size; i++) {
-        // Apply activation function
-        // output = activationFunction(zMatrix)
-        output = this->layers[i].weights * output; // Generate the zMatrix = (weights * input)
-        applyActivationFunc(output, i + 1);
+    this->layers[layerIndex].values = this->layers[layerIndex].weights * this->layers[layerIndex - 1].values + this->layers[layerIndex].bias;
+    this->applyActivationFunc(this->layers[layerIndex].values, layerIndex);
+
+    // Feed forward on next ones
+    for (layerIndex = 2; layerIndex < this->layers.size(); layerIndex++) {
+        this->layers[layerIndex].values = this->layers[layerIndex].weights * this->layers[layerIndex - 1].values + this->layers[layerIndex].bias;
+        this->applyActivationFunc(this->layers[layerIndex].values, layerIndex);
     }
 
-    return output;
+    layerIndex--;
+
+    return this->layers[layerIndex].values;
 }
 
 inline void neuralNework::NN::applyActivationFunc(arma::Mat<double>& value, unsigned index)
@@ -203,14 +204,11 @@ inline arma::Mat<double> neuralNework::NN::applyActivationFuncD(arma::Mat<double
     return value.transform(this->layers[index].activationFunctionD);
 }
 
-void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input)
+void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input, float learnningRate)
 {
 
     // Layer index
     int layerIndex = 0;
-
-    // Learnning rate
-    float learnningRate = 0.5;
 
     // First layer is the input
     this->layers[layerIndex].values = input;
@@ -244,7 +242,8 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
 
     // this is the derivative of the neural network error, in practice we do not use the error itself
     arma::Mat<double> error = this->layers[layerIndex].values - target;
-    std::cout << "Error: \n " << error << std::endl;
+    //    std::cout << "\rError: " << arma::accu(arma::abs(error)) << "\n Result: \n"
+    //              << this->layers[layerIndex].values << std::flush;
 
     // this is the derivative of activation function with respect with its input (the z matrix)
     arma::Mat<double> activationSlope = applyActivationFuncD(this->layers[layerIndex].values, layerIndex);
@@ -305,12 +304,10 @@ double neuralNework::stepD(double x)
 
 double neuralNework::relu(double x)
 {
-    //    std::cout << "relu" << std::endl;
     return std::max(x, 0.0);
 }
 double neuralNework::reluD(double x)
 {
-    //    std::cout << "reluD" << std::endl;
     return x < 0.0 ? 0.0 : 1.0;
 }
 
@@ -334,14 +331,12 @@ double neuralNework::leakyReluD(double x)
 
 double neuralNework::hiperbolicTangent(double x)
 {
-    std::cout << "hiperbolic" << std::endl;
     double y1 = std::pow(M_E, x);
     double y2 = std::pow(M_E, -x);
     return (y1 - y2) / (y1 + y2);
 }
 double neuralNework::hiperbolicTangentD(double x)
 {
-    std::cout << "hiperbolicD" << std::endl;
     return 1.0 - std::pow(hiperbolicTangent(x), 2.0);
 }
 
@@ -358,11 +353,9 @@ double neuralNework::siluD(double x)
 
 double neuralNework::none(double x)
 {
-    std::cout << "None" << std::endl;
     return x;
 }
 double neuralNework::noneD(double x)
 {
-    std::cout << "NoneD" << std::endl;
     return 0;
 }
