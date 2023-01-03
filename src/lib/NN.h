@@ -87,7 +87,7 @@ namespace neuralNework
         ~NN();
 
         inline void applyActivationFunc(arma::Mat<double> & value, unsigned index);
-        inline void applyActivationFuncD(arma::Mat<double> & value, unsigned index);
+        inline arma::Mat<double> applyActivationFuncD(arma::Mat<double> value, unsigned index);
 
         bool assemble();
         void showStructure(bool showMatrices = false);

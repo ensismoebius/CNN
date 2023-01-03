@@ -39,96 +39,92 @@ int main(int argc, char* argv[])
     arma::Mat<double> layer0(2, 1);
     layer0.at(0, 0) = 0.05;
     layer0.at(1, 0) = 0.10;
-    std::cout << "///////////// Layer 0 (Input) /////////////" << std::endl;
-    std::cout << layer0 << std::endl;
 
     arma::Mat<double> weight0to1(2, 2);
     weight0to1.at(0, 0) = 0.15;
     weight0to1.at(0, 1) = 0.20;
     weight0to1.at(1, 0) = 0.25;
     weight0to1.at(1, 1) = 0.30;
-    std::cout << "///////////// weight0 (InputHiddenWeights) /////////////" << std::endl;
-    std::cout << weight0to1 << std::endl;
 
     arma::Mat<double> bias0(2, 1);
     bias0.at(0, 0) = 0.35;
     bias0.at(1, 0) = 0.35;
 
     arma::Mat<double> layer1(2, 1);
-    std::cout << "///////////// Layer 1 (Hidden) /////////////" << std::endl;
-    std::cout << layer1 << std::endl;
 
     arma::Mat<double> weight1to2(2, 2);
     weight1to2.at(0, 0) = 0.4;
     weight1to2.at(0, 1) = 0.45;
     weight1to2.at(1, 0) = 0.50;
     weight1to2.at(1, 1) = 0.55;
-    std::cout << "///////////// weight1 (HiddenOutputWeights) /////////////" << std::endl;
-    std::cout << weight1to2 << std::endl;
 
     arma::Mat<double> bias1(2, 1);
     bias1.at(0, 0) = 0.60;
     bias1.at(1, 0) = 0.60;
 
     arma::Mat<double> layer2(2, 1);
-    std::cout << "///////////// Layer 2 (Output) /////////////" << std::endl;
-    std::cout << layer2 << std::endl;
 
-    std::cout << "/////////////////////////////////////////////" << std::endl;
+    ////////////////////
+    /// Feed forward ///
+    ////////////////////
 
-    //////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
+    std::cout << "//////// Begin - Feed forward ///////" << std::endl;
 
-    std::cout << "------------ FeedForward: BEGIN" << std::endl;
-
-    std::cout << " FeedForward: Layer 0 (input)" << std::endl;
+    std::cout << "Feed Forward: Layer 0 (input)" << std::endl;
     std::cout << layer0 << std::endl;
 
-    std::cout << " FeedForward: Layer 1 (hidden)" << std::endl;
+    std::cout << "FeedForward: Weight 0 (InputToHiddenWeights) " << std::endl;
+    std::cout << weight0to1 << std::endl;
+
     layer1 = weight0to1 * layer0 + bias0;
     layer1 = applyActivationFunc(layer1);
+    std::cout << "Feed Forward: Layer 1 (hidden)" << std::endl;
     std::cout << layer1 << std::endl;
 
-    std::cout << " FeedForward: Layer 2 (output)" << std::endl;
+    std::cout << "FeedForward: Weight 1 (InputToHiddenWeights) " << std::endl;
+    std::cout << weight1to2 << std::endl;
+
     layer2 = weight1to2 * layer1 + bias1;
     layer2 = applyActivationFunc(layer2);
+    std::cout << "FeedForward: Layer 2 (output)" << std::endl;
     std::cout << layer2 << std::endl;
 
-    std::cout << " FeedForward: Error" << std::endl;
+    std::cout << "//////// End - Feed forward ///////" << std::endl;
+
+    ///////////////////////
+    /// Backpropagation ///
+    ///////////////////////
+
+    std::cout << "//////// begin - Back propagation ///////" << std::endl;
+
+    std::cout << "/n- Backprop: Error" << std::endl;
     arma::Mat<double> errors = ((target - layer2) % (target - layer2)) / 2;
     std::cout << errors << std::endl;
 
-    std::cout << "------------ FeedForward: END" << std::endl;
-    std::cout << "------------ Backprop OUTPUT: BEGIN" << std::endl;
+    // this is the neural network error
+    arma::Mat<double> error = layer2 - target;
+    std::cout << "a- Backprop OUTPUT: Layer 2 errors (output errors)" << std::endl;
+    std::cout << error << std::endl;
 
-    std::cout << "a- Backprop OUTPUT: Layer 2 errors derivative (output errors derivative)" << std::endl;
-    // this is the derivative of the error with respect to the last layer (aka output)
-    arma::Mat<double> errorSlope = layer2 - target;
-    std::cout << errorSlope << std::endl;
-
+    // this is the derivative of activation function with respect with its input (the z matrix)
+    auto activationSlope = applyActivationFuncD(layer2);
     std::cout << "b- Backprop OUTPUT: Layer 2 activation function derivative" << std::endl;
-    // this is the derivative of activation function with respect with its input
-    // (the z matrix)
-    auto activationSlope2 = applyActivationFuncD(layer2);
-    std::cout << activationSlope2 << std::endl;
+    std::cout << activationSlope << std::endl;
 
+    // this is the derivative of the Z matrix with respect with its weights (aka the value of the layer 1).
     std::cout << "c- Backprop OUTPUT: Layer 2 Zmatrix derivative (Layer 1 Transposed)" << std::endl;
-    // this is the derivative of the Z matrix with respect with
-    // his weights (aka the value of the layer 1).
     std::cout << layer1.t() << std::endl;
 
     std::cout << "d- Backprop OUTPUT: Layer 2 delta (a*b)" << std::endl;
-    auto delta2 = errorSlope % activationSlope2;
+    auto delta2 = error % activationSlope;
     std::cout << delta2 << std::endl;
 
-    std::cout << " Backprop OUTPUT: Layer 2 gradient (c*d)" << std::endl;
-    // this is the derivative of the error with respect
-    // to the weights
+    std::cout << "e- Backprop OUTPUT: Layer 2 gradient (c*d)" << std::endl;
+    // this is the derivative of the error with respect to the weights
     auto gradient2 = delta2 * layer1.t();
     std::cout << gradient2 << std::endl;
 
-    std::cout << " Backprop OUTPUT: New Weight 1 (hidden->output)" << std::endl;
+    std::cout << "f- Backprop OUTPUT: New Weight 1 (hidden->output)" << std::endl;
     arma::Mat<double> weight1to2Prime = weight1to2 - learnningRate * gradient2;
     std::cout << weight1to2 << "to" << std::endl
               << weight1to2Prime << std::endl;

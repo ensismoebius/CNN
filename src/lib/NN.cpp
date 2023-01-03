@@ -198,63 +198,101 @@ inline void neuralNework::NN::applyActivationFunc(arma::Mat<double>& value, unsi
     value.transform(this->layers[index].activationFunction);
 }
 
-inline void neuralNework::NN::applyActivationFuncD(arma::Mat<double>& value, unsigned index)
+inline arma::Mat<double> neuralNework::NN::applyActivationFuncD(arma::Mat<double> value, unsigned index)
 {
-    value.transform(this->layers[index].activationFunctionD);
+    return value.transform(this->layers[index].activationFunctionD);
 }
 
 void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<double>& input)
 {
 
     float learnningRate = 0.5;
-    // Layer index
-    unsigned i = 1;
+    std::cout << "///////////// Learnning rate /////////////" << std::endl;
+    std::cout << learnningRate << std::endl
+              << std::endl;
+
+    std::cout << "///////////// Target /////////////" << std::endl;
+    std::cout << target << std::endl;
 
     ////////////////////
     /// Feed forward ///
     ////////////////////
 
+    std::cout << "//////// Begin - Feed forward ///////" << std::endl;
+
+    // Layer index
+    unsigned i = 1;
+
+    std::cout << "Feed Forward: Layer 0 (Input) " << std::endl;
+    std::cout << input << std::endl;
+
+    std::cout << "FeedForward: Weight " << i - 1 << " (InputToHiddenWeights) " << std::endl;
+    std::cout << this->layers[i].weights << std::endl;
+
     this->layers[i].values = this->layers[i].weights * input + this->layers[i].bias;
     this->applyActivationFunc(this->layers[i].values, i);
+    std::cout << "Feed Forward: Layer " << i << " (Hidden) " << std::endl;
     std::cout << this->layers[i].values << std::endl;
+
     i++;
 
     for (; i < this->layers.size(); i++) {
+
+        std::cout << "FeedForward: Weight " << i - 1 << " (HiddenToOutputWeights) " << std::endl;
+        std::cout << this->layers[i].weights << std::endl;
+
         this->layers[i].values = this->layers[i].weights * this->layers[i - 1].values + this->layers[i].bias;
         this->applyActivationFunc(this->layers[i].values, i);
+
+        std::cout << "Feed Forward: Layer " << i << " (Hidden/Output) " << std::endl;
         std::cout << this->layers[i].values << std::endl;
     }
+
+    std::cout << "//////// End - Feed forward ///////" << std::endl;
 
     ///////////////////////
     /// Backpropagation ///
     ///////////////////////
-
     i--;
 
-    arma::Mat<double> errorSlope = this->layers[i].values - target;
-    errorSlope.transform(this->errorFunctionD);
-    std::cout << errorSlope << std::endl;
+    std::cout << "//////// begin - Back propagation ///////" << std::endl;
+
+    std::cout << "/n- Backprop: Error" << std::endl;
+    arma::Mat<double> err = this->layers[i].values - target;
+    std::cout << err.transform(this->errorFunction) << std::endl;
+
+    // this is the neural network error
+    arma::Mat<double> error = this->layers[i].values - target;
+    std::cout << "a- Backprop: Layer 2 errors (output errors)" << std::endl;
+    std::cout << error << std::endl;
 
     for (; i > 0; i--) {
 
         // this is the derivative of activation function with respect with its input (the z matrix)
-        applyActivationFuncD(this->layers[i].values, i);
-        std::cout << this->layers[i].values << std::endl;
+        auto activationSlope = applyActivationFuncD(this->layers[i].values, i);
+        std::cout << "b- Backprop: Layer 2 activation function derivative" << std::endl;
+        std::cout << activationSlope << std::endl;
 
         // this is the derivative of the Z matrix with respect with his weights (aka the value of the layer 1).
+        std::cout << "c- Backprop: Layer 2 Zmatrix derivative (Layer 1 Transposed)" << std::endl;
         std::cout << this->layers[i - 1].values.t() << std::endl;
 
-        auto delta = errorSlope % this->layers[i].values;
+        std::cout << "d- Backprop: Layer 2 delta (a*b)" << std::endl;
+        auto delta = error % activationSlope;
         std::cout << delta << std::endl;
 
+        std::cout << "e- Backprop: Layer 2 gradient (d*c)" << std::endl;
         // this is the derivative of the error with respect to the weights
         auto gradient = delta * this->layers[i - 1].values.t();
         std::cout << gradient << std::endl;
 
+        std::cout << "f- Backprop: New Weight 1 (hidden->output)" << std::endl;
         arma::Mat<double> weight1to2Prime = this->layers[i].weights - learnningRate * gradient;
         std::cout << this->layers[i].weights << "to" << std::endl
                   << weight1to2Prime << std::endl;
     }
+
+    std::cout << "//////// end - Backpropagation ///////" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////
@@ -263,14 +301,11 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
 
 double neuralNework::sigmoid(double x)
 {
-    std::cout << "sigmoid" << std::endl;
     return 1.0 / (1.0 + std::pow(M_E, -x));
 }
 double neuralNework::sigmoidD(double x)
 {
-    std::cout << "sigmoidD" << std::endl;
-    double y = neuralNework::sigmoid(x);
-    return y * (1.0 - y);
+    return x * (1.0 - x);
 }
 
 double neuralNework::step(double x)
@@ -284,12 +319,12 @@ double neuralNework::stepD(double x)
 
 double neuralNework::relu(double x)
 {
-    std::cout << "relu" << std::endl;
+    //    std::cout << "relu" << std::endl;
     return std::max(x, 0.0);
 }
 double neuralNework::reluD(double x)
 {
-    std::cout << "reluD" << std::endl;
+    //    std::cout << "reluD" << std::endl;
     return x < 0.0 ? 0.0 : 1.0;
 }
 
