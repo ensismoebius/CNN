@@ -21,6 +21,10 @@ int main(int argc, char const* argv[])
     nn.assemble();
     //    nn.feedForward(input);
     //    nn.showStructure(true); // TODO Corrigir para mostrar tudo corretamente
-    nn.backPropagation(target, input);
+
+    for (int i = 0; i < 200000; i++) {
+        nn.backPropagation(target, input);
+    }
+
     return 0;
 }
