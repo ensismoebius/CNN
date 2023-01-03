@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     std::cout << error << std::endl;
 
     // this is the derivative of activation function with respect with its input (the z matrix)
-    auto activationSlope = applyActivationFuncD(layer2);
+    arma::Mat<double> activationSlope = applyActivationFuncD(layer2);
     std::cout << "b- Backprop OUTPUT: Layer 2 activation function derivative" << std::endl;
     std::cout << activationSlope << std::endl;
 
@@ -116,12 +116,12 @@ int main(int argc, char* argv[])
     std::cout << layer1.t() << std::endl;
 
     std::cout << "d- Backprop OUTPUT: Layer 2 delta (a*b)" << std::endl;
-    auto delta2 = error % activationSlope;
+    arma::Mat<double> delta2 = error % activationSlope;
     std::cout << delta2 << std::endl;
 
     std::cout << "e- Backprop OUTPUT: Layer 2 gradient (c*d)" << std::endl;
     // this is the derivative of the error with respect to the weights
-    auto gradient2 = delta2 * layer1.t();
+    arma::Mat<double> gradient2 = delta2 * layer1.t();
     std::cout << gradient2 << std::endl;
 
     std::cout << "f- Backprop OUTPUT: New Weight 1 (hidden->output)" << std::endl;
@@ -132,22 +132,25 @@ int main(int argc, char* argv[])
     std::cout << "------------ Backprop OUTPUT: END" << std::endl;
     std::cout << "------------ Backprop HIDDEN: BEGIN" << std::endl;
 
-    std::cout << "a- Backprop HIDDEN: Layer 1 activation function derivative" << std::endl;
-    // this is the derivative of activation function with respect with its input
-    // (the z matrix)
-    auto activationSlope1 = applyActivationFuncD(layer1);
+    // this is the derivative of activation function with respect with its input (the z matrix)
+    arma::Mat<double> activationSlope1 = applyActivationFuncD(layer1);
+    std::cout << "b- Backprop HIDDEN: Layer 1 activation function derivative" << std::endl;
     std::cout << activationSlope1 << std::endl;
 
-    std::cout << "b- Backprop HIDDEN: Layer 1 delta" << std::endl;
-    auto delta1 = weight1to2.t() * delta2 % activationSlope1;
+    // this is the derivative of the Z matrix with respect with his weights (aka the value of the layer 1).
+    std::cout << "c- Backprop HIDDEN: Layer 1 Zmatrix derivative (Layer 1 Transposed)" << std::endl;
+    std::cout << layer1.t() << std::endl;
+
+    std::cout << "d- Backprop HIDDEN: Layer 1 delta" << std::endl;
+    arma::Mat<double> delta1 = weight1to2.t() * delta2 % activationSlope1;
     std::cout << delta1 << std::endl;
 
-    std::cout << "c- Backprop HIDDEN: Layer 1 gradient" << std::endl;
+    std::cout << "e- Backprop HIDDEN: Layer 1 gradient" << std::endl;
     // this is the derivative of the error with respect to the weights
-    auto gradient1 = delta1 * layer0.t();
+    arma::Mat<double> gradient1 = delta1 * layer0.t();
     std::cout << gradient1 << std::endl;
 
-    std::cout << "d- Backprop HIDDEN: New Weight 0 (input->hidden)" << std::endl;
+    std::cout << "f- Backprop HIDDEN: New Weight 0 (input->hidden)" << std::endl;
     arma::Mat<double> weight0to1Prime = weight0to1 - learnningRate * gradient1;
     std::cout << weight0to1 << "to" << std::endl
               << weight0to1Prime << std::endl;
