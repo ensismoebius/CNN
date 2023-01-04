@@ -120,25 +120,25 @@ bool neuralNework::NN::addLayer(unsigned nodes, LayerType type, ActivationFuncti
 
 bool neuralNework::NN::assemble()
 {
-    //    this->layers[1].weights.resize(2, 2);
-    //    this->layers[1].weights.at(0, 0) = 0.15;
-    //    this->layers[1].weights.at(0, 1) = 0.20;
-    //    this->layers[1].weights.at(1, 0) = 0.25;
-    //    this->layers[1].weights.at(1, 1) = 0.30;
+    //    this->layers[1].weightsToPrevious.resize(2, 2);
+    //    this->layers[1].weightsToPrevious.at(0, 0) = 0.30;
+    //    this->layers[1].weightsToPrevious.at(0, 1) = 0.25;
+    //    this->layers[1].weightsToPrevious.at(1, 0) = 0.13;
+    //    this->layers[1].weightsToPrevious.at(1, 1) = 0.42;
 
     //    this->layers[1].bias.resize(2, 1);
-    //    this->layers[1].bias.at(0, 0) = 0.35;
-    //    this->layers[1].bias.at(1, 0) = 0.35;
+    //    this->layers[1].bias.at(0, 0) = 0.42;
+    //    this->layers[1].bias.at(1, 0) = 0.42;
 
-    //    this->layers[2].weights.resize(2, 2);
-    //    this->layers[2].weights.at(0, 0) = 0.4;
-    //    this->layers[2].weights.at(0, 1) = 0.45;
-    //    this->layers[2].weights.at(1, 0) = 0.50;
-    //    this->layers[2].weights.at(1, 1) = 0.55;
+    //    this->layers[2].weightsToPrevious.resize(2, 2);
+    //    this->layers[2].weightsToPrevious.at(0, 0) = 0.67;
+    //    this->layers[2].weightsToPrevious.at(0, 1) = 0.54;
+    //    this->layers[2].weightsToPrevious.at(1, 0) = 0.84;
+    //    this->layers[2].weightsToPrevious.at(1, 1) = 0.52;
 
     //    this->layers[2].bias.resize(2, 1);
-    //    this->layers[2].bias.at(0, 0) = 0.60;
-    //    this->layers[2].bias.at(1, 0) = 0.60;
+    //    this->layers[2].bias.at(0, 0) = 0.67;
+    //    this->layers[2].bias.at(1, 0) = 0.67;
 
     ////////////////////////////////////////////////////
     ///// The weights creating and initializing ////////
@@ -147,14 +147,13 @@ bool neuralNework::NN::assemble()
         this->layers[i].weightsToPrevious.resize(this->layers[i].size, this->layers[i - 1].size);
         this->layers[i].weightsToPrevious.randu();
         this->layers[i].bias.resize(this->layers[i].size, 1);
-        this->layers[i].bias.randu();
+        this->layers[i].bias.ones();
     }
     return true;
 }
 
 void neuralNework::NN::showStructure(bool showValues)
 {
-    std::cout << "//////////////////////// Layers and weights ///////////////////////////" << std::endl;
     unsigned size = this->layers.size();
 
     for (unsigned i = 0; i < size; i++) {
@@ -171,8 +170,6 @@ void neuralNework::NN::showStructure(bool showValues)
         if (showValues)
             std::cout << this->layers[i].values << std::endl;
     }
-
-    std::cout << "/////////////////////// Layers and weights end //////////////////////////" << std::endl;
 }
 
 arma::Mat<double> neuralNework::NN::feedForward(arma::Mat<double>& input)
@@ -217,14 +214,17 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     // First layer is the input
     this->layers[layerIndex].values = input;
 
-    // Stores the new weigths
-    arma::Mat<double> newWeights[this->layers.size()];
+    // Temporaly stores the new weigths
+    std::vector<arma::Mat<double>> newWeights(this->layers.size());
+
+    // Temporaly stores the new biases
+    std::vector<arma::Mat<double>> newBiases(this->layers.size());
 
     ////////////////////
     /// Feed forward ///
     ////////////////////
 
-    // Feed forward on second layer: The layer zero is not modifiable so, we skip it
+    // Feed forward on second layer: The layer zero is not modifiable so, we skip it setting layerIndex=1
     layerIndex = 1;
     this->layers[layerIndex].values = this->layers[layerIndex].weightsToPrevious * this->layers[layerIndex - 1].values + this->layers[layerIndex].bias;
     this->applyActivationFunc(this->layers[layerIndex].values, layerIndex);
@@ -244,22 +244,28 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
     // Pointing to last layer
     layerIndex--;
 
-    // this is the derivative of the neural network error, in practice we do not use the error itself
-    arma::Mat<double> error = this->layers[layerIndex].values - target;
-    //    std::cout << "\rError: " << arma::accu(arma::abs(error)) << "\n Result: \n"
+    //    std::cout << "\rError Total: " << arma::accu(0.5 * (target - this->layers[layerIndex].values) % (target - this->layers[layerIndex].values)) << "\n Result: \n"
     //              << this->layers[layerIndex].values << std::flush;
+
+    // deriv(errorFunc, output) * deriv(output, zmatrix) * deriv(zmatrix * input)
+
+    // this is the derivative of the neural network error is respect to the output
+    arma::Mat<double> errorSlope = this->layers[layerIndex].values - target;
 
     // this is the derivative of activation function with respect with its input (the z matrix)
     arma::Mat<double> activationSlope = applyActivationFuncD(this->layers[layerIndex].values, layerIndex);
 
-    arma::Mat<double> delta = error % activationSlope;
+    // gradient = outputErrors * activationSlope * learnningRate
+    arma::Mat<double> gradient = errorSlope % activationSlope * learnningRate;
 
-    // this is the derivative of the error with respect to the weights
-    arma::Mat<double> gradient = delta * this->layers[layerIndex - 1].values.t();
+    // delta = gradient * hidden.tranposed
+    arma::Mat<double> delta = gradient * this->layers[layerIndex - 1].values.t();
 
-    //    std::cout << "f- Backprop OUTPUT: New Weight 1 (hidden->output)" << std::endl;
-    newWeights[layerIndex] = this->layers[layerIndex].weightsToPrevious - learnningRate * gradient;
-    //    std::cout << newWeights[layerIndex] << std::endl;
+    // Update the weights
+    newWeights[layerIndex] = this->layers[layerIndex].weightsToPrevious - delta;
+
+    // Update bias weights
+    //    newBiases[layerIndex] = this->layers[layerIndex].bias - delta;
 
     // Backpropagation on remainning ones
     layerIndex--;
@@ -268,19 +274,23 @@ void neuralNework::NN::backPropagation(arma::Mat<double>& target, arma::Mat<doub
         // this is the derivative of activation function with respect with its input (the z matrix)
         activationSlope = applyActivationFuncD(this->layers[layerIndex].values, layerIndex);
 
+        // gradient
+        gradient = this->layers[layerIndex + 1].weightsToPrevious.t() * gradient % activationSlope;
+
         // delta
-        delta = this->layers[layerIndex + 1].weightsToPrevious.t() * delta % activationSlope;
+        delta = gradient * this->layers[layerIndex - 1].values.t();
 
-        // this is the derivative of the error with respect to the weights
-        gradient = delta * this->layers[layerIndex - 1].values.t();
-
-        //        std::cout << "f- Backprop HIDDEN: New Weight " << layerIndex << std::endl;
-        newWeights[layerIndex] = this->layers[layerIndex].weightsToPrevious - learnningRate * gradient;
-        //        std::cout << newWeights[layerIndex] << std::endl;
+        newWeights[layerIndex] = this->layers[layerIndex].weightsToPrevious - learnningRate * delta;
+        //        newBiases[layerIndex] = this->layers[layerIndex].bias - delta;
     }
 
-    for (layerIndex = 0; layerIndex < this->layers.size(); layerIndex++) {
+    // No weights or biases to update in input layer thats why the layerIndex = 1
+    for (layerIndex = 1; layerIndex < this->layers.size(); layerIndex++) {
         this->layers[layerIndex].weightsToPrevious = newWeights[layerIndex];
+        //        this->layers[layerIndex].bias = newBiases[layerIndex];
+
+        //        std::cout << "Bias" << std::endl;
+        //        std::cout << this->layers[layerIndex].bias;
     }
 }
 
