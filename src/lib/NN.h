@@ -68,9 +68,12 @@ namespace neuralNework
     typedef struct LayerProperties{
         int size;
         LayerType type;
+
         arma::Mat<double> bias;
         arma::Mat<double> values;
-        arma::Mat<double> weights;
+        arma::Mat<double> weightsToPrevious;
+
+        ActivationFunction activation;
         double (*activationFunction)(double input);
         double (*activationFunctionD)(double input);
     } LayerProperties;
